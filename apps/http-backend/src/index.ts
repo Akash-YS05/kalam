@@ -70,7 +70,7 @@ app.post("/signin", async(req, res) => {
     
 })
 
-app.post("/room", middleware, async(req, res) => {
+app.post("/room", async(req, res) => {
     const parsedData = CreateRoomSchema.safeParse(req.body);
     if (!parsedData.success) {
         res.json({ message: "Invalid data" })
@@ -97,7 +97,7 @@ app.post("/room", middleware, async(req, res) => {
 
 })
 
-app.get("/chats/:roomId", middleware, async(req, res) => {
+app.get("/chats/:roomId", async(req, res) => {
     try {
         const roomId = Number(req.params.roomId);
         const messages = await prisma.chat.findMany({
@@ -118,7 +118,7 @@ app.get("/chats/:roomId", middleware, async(req, res) => {
     }
 })
 
-app.get("/room/:slug", middleware, async(req, res) => {
+app.get("/room/:slug", async(req, res) => {
     try {
         const slug = req.params.slug;
         const room = await prisma.room.findFirst({

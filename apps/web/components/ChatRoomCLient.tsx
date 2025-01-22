@@ -32,7 +32,7 @@ export default function ChatRoomClient({
 
     return (
         <div>
-            {chats.map(m => <div>{m.message}</div>)}
+            {chats.map((m, idx) => <div key={idx}>{m.message}</div>)}
 
             <input type="text" value={currentMessage} onChange={e => {
                 setCurrentMessage(e.target.value);
