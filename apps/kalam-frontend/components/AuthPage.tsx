@@ -86,14 +86,24 @@ export default function AuthPage({isSignin}: {isSignin: boolean}) {
             </button>
           </div>
         </form>
-        <div className="text-center">
+        {isSignin ? ( <div className="text-center">
           <p className="mt-2 text-sm text-muted-foreground">
             Don't have an account?{" "}
             <Link href="/signup" className="font-medium text-primary hover:text-primary-dark">
               Sign up
             </Link>
           </p>
-        </div>
+        </div> ) : (
+          <div className="text-center">
+            <p className="mt-2 text-sm text-muted-foreground">
+              Already have an account?{" "}
+              <Link href="/signin" className="font-medium text-primary hover:text-primary-dark">
+                Sign in
+              </Link>
+            </p>
+          </div>
+        ) }
+        
       </motion.div>
     </div>
   )
