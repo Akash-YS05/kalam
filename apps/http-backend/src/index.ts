@@ -6,7 +6,6 @@ import cors from 'cors';
 import {CreateUserSchema, SigninSchema, CreateRoomSchema } from '@repo/common/types';
 import { prisma } from '@repo/database/client';
 import { JWT_SECRET } from '@repo/backend-common/config';
-
 const app = express()
 app.use(express.json())
 app.use(cors())
@@ -70,7 +69,7 @@ app.post("/signin", async(req, res) => {
     
 })
 
-app.post("/room", async(req, res) => {
+app.post("/room",  middleware, async(req, res) => {
     const parsedData = CreateRoomSchema.safeParse(req.body);
     if (!parsedData.success) {
         res.json({ message: "Invalid data" })
@@ -78,6 +77,11 @@ app.post("/room", async(req, res) => {
     }
 
     const userId = req.userId || "";
+
+    if (!userId) {
+        res.status(400).json({ message: "Invalid or missing userId" });
+        return;
+    }
 
     try {
         const room = await prisma.room.create({
@@ -92,6 +96,8 @@ app.post("/room", async(req, res) => {
         })
 
     } catch(e) {
+        console.log(e);
+        
         res.status(411).json({ message: "Something went wrong" })
     }
 
