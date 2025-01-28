@@ -83,3 +83,4 @@ async function getExistingShapes(roomId: string) {
     })
     return shapes;
 }
+
