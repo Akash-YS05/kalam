@@ -14,8 +14,8 @@ export default function Canvas({roomId, socket} : {roomId: string, socket: WebSo
 
     }, [canvasRef])
 
-    return <div>
-        <canvas ref={canvasRef} height={1000} width={2000}></canvas>
+    return <div className='h-screen overflow-hidden'>
+        <canvas ref={canvasRef} height={window.innerHeight} width={window.innerWidth}></canvas>
     </div>
 
     
