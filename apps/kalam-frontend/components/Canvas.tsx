@@ -2,19 +2,30 @@ import { initDraw } from '@/draw';
 import React, { useEffect, useRef, useState } from 'react'
 import IconButton from './IconButton';
 import { Circle, Pencil, RectangleHorizontal } from 'lucide-react';
+import { Game } from '@/draw/Game';
 
-export  type Tool = 'pencil' | 'rect' | 'circle';
+export type Tool = 'pencil' | 'rect' | 'circle';
 
 export default function Canvas({roomId, socket} : {roomId: string, socket: WebSocket}) {
 
     const canvasRef = useRef<HTMLCanvasElement>(null)
+    const [game, setGame] = useState<Game>()  //reference to Game class
     const [selectedTool, setSelectedTool] = useState<Tool>('rect')
+
+    useEffect(() => {
+        game?.setTool(selectedTool);
+    }, [selectedTool, game])
+
     useEffect(() => {
 
         if (canvasRef.current) {
+            const g = new Game(canvasRef.current, roomId, socket);
+            setGame(g);   
             
-            initDraw(canvasRef.current, roomId, socket);
-            
+            return () => {
+                g.destroy();
+            }
+                  
         }
 
     }, [canvasRef])
