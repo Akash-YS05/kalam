@@ -3,12 +3,12 @@ import React, { useEffect, useRef, useState } from 'react'
 import IconButton from './IconButton';
 import { Circle, Pencil, RectangleHorizontal } from 'lucide-react';
 
-type Shape = 'pencil' | 'rect' | 'circle';
+export  type Tool = 'pencil' | 'rect' | 'circle';
 
 export default function Canvas({roomId, socket} : {roomId: string, socket: WebSocket}) {
 
     const canvasRef = useRef<HTMLCanvasElement>(null)
-    const [selectedTool, setSelectedTool] = useState<Shape>('rect')
+    const [selectedTool, setSelectedTool] = useState<Tool>('rect')
     useEffect(() => {
 
         if (canvasRef.current) {
@@ -27,8 +27,8 @@ export default function Canvas({roomId, socket} : {roomId: string, socket: WebSo
 }
 
 function Topbar({selectedTool, setSelectedTool} : {
-    selectedTool: Shape,
-    setSelectedTool: (s: Shape) => void
+    selectedTool: Tool,
+    setSelectedTool: (s: Tool) => void
 }){
     return <div className='fixed top-10 left-10'>
         <div className='flex gap-4'>
