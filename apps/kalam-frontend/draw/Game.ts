@@ -161,6 +161,10 @@ export class Game {
 
         if (this.selectedTool === "pencil") {
             this.currentPencilShape = { type: "pencil", points: [{ x: e.clientX, y: e.clientY }] };
+            this.existingShape.push({
+                type: "pencil",
+                points: [{ x: e.clientX, y: e.clientY }],
+            });
         }
     }
 
