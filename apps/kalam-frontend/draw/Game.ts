@@ -14,10 +14,7 @@ type Shape = {
     radius: number,
 } | {
     type: "pencil",
-    startX: number,
-    startY: number,
-    endX: number,
-    endY: number,
+    points: {x: number, y: number}[]
 }
 
 
@@ -31,6 +28,7 @@ export class Game {
     private startX = 0;
     private startY = 0;
     private selectedTool: Tool = "rect";
+    private currentPencilShape: Shape | null = null;
     socket: WebSocket;
     
     constructor(canvas: HTMLCanvasElement, roomId: string, socket: WebSocket) {
@@ -92,66 +90,103 @@ export class Game {
                 this.ctx.arc(shape.centerX, shape.centerY, Math.abs(shape.radius), 0, Math.PI * 2);
                 this.ctx.stroke();
                 this.ctx.closePath();
+            } else if (shape.type === "pencil") {
+                this.ctx.strokeStyle = "rgba(255, 255, 255)";
+                this.ctx.beginPath();
+                for (let i = 0; i < shape.points.length; i++) {
+                    if (i === 0) {
+                        this.ctx.moveTo(shape.points[i].x, shape.points[i].y);
+                    } else {
+                        this.ctx.lineTo(shape.points[i].x, shape.points[i].y);
+                    }
+                }
+                this.ctx.stroke();
+                this.ctx.closePath();
             }
         })
     }
 
     mouseUpHandler = (e: MouseEvent) => {
         this.clicked = false;
-        const width = e.clientX - this.startX
-        const height = e.clientY - this.startY
-
-        //@ts-ignore
-        const selectedTool = this.selectedTool;
-        let shape: Shape | null = null;
-
-        if (selectedTool === "rect") {
-            shape = {
-                type: "rect",
-                x: this.startX,
-                y: this.startY,
-                width,
-                height
+    
+        if (this.selectedTool === "pencil" && this.currentPencilShape) {
+            this.existingShape.push(this.currentPencilShape);
+    
+            this.socket.send(JSON.stringify({
+                type: "chat",
+                message: JSON.stringify({ shape: this.currentPencilShape }),
+                roomId: this.roomId
+            }));
+    
+            this.currentPencilShape = null; 
+        } else {
+            const width = e.clientX - this.startX;
+            const height = e.clientY - this.startY;
+            let shape: Shape | null = null;
+    
+            if (this.selectedTool === "rect") {
+                shape = {
+                    type: "rect",
+                    x: this.startX,
+                    y: this.startY,
+                    width,
+                    height
+                };
+            } else if (this.selectedTool === "circle") {
+                const radius = Math.max(width, height) / 2;
+                shape = {
+                    type: "circle",
+                    centerX: this.startX + radius,
+                    centerY: this.startY + radius,
+                    radius: radius
+                };
             }
-        } else if (selectedTool === "circle") {
-            const radius = Math.max(width, height) / 2;
-            shape = {
-                type: "circle",
-                centerX: this.startX + radius,
-                centerY: this.startY + radius,
-                radius: radius
+    
+            if (shape) {
+                this.existingShape.push(shape);
+                this.socket.send(JSON.stringify({
+                    type: "chat",
+                    message: JSON.stringify({ shape }),
+                    roomId: this.roomId
+                }));
             }
         }
-
-        if (!shape) {
-            return;
-        }
-
-        this.existingShape.push(shape);
-        
-        this.socket.send(JSON.stringify({type: "chat", message: JSON.stringify({shape}), roomId: this.roomId}));
-    }
+    };
+    
 
     mouseDownHandler = (e: MouseEvent) => {
         this.clicked = true;
-            this.startX = e.clientX;
-            this.startY = e.clientY;
+        this.startX = e.clientX;
+        this.startY = e.clientY;
+
+        if (this.selectedTool === "pencil") {
+            this.currentPencilShape = { type: "pencil", points: [{ x: e.clientX, y: e.clientY }] };
+        }
     }
 
     mouseMoveHandler = (e: MouseEvent) => {
-        if (this.clicked) {
-            const width = e.clientX - this.startX
-            const height = e.clientY -this.startY
+        if (!this.clicked) return;
+    
+        if (this.selectedTool === "pencil" && this.currentPencilShape?.type === "pencil") {
+            const newPoint = { x: e.clientX, y: e.clientY };
+            this.currentPencilShape.points.push(newPoint);
+    
+            this.ctx.beginPath();
+            const points = this.currentPencilShape.points;
+            this.ctx.moveTo(points[points.length - 2].x, points[points.length - 2].y);
+            this.ctx.lineTo(newPoint.x, newPoint.y);
+            this.ctx.stroke();
+            this.ctx.closePath();
+        } else {
             this.clearCanvas();
             this.ctx.strokeStyle = "rgba(255, 255, 255)";
-
-            //@ts-ignore
-            const selectedTool = this.selectedTool;
-
-            if (selectedTool === "rect") {
+    
+            if (this.selectedTool === "rect") {
+                const width = e.clientX - this.startX;
+                const height = e.clientY - this.startY;
                 this.ctx.strokeRect(this.startX, this.startY, width, height);
-            } else if (selectedTool === "circle") {
-                const radius = Math.max(width, height) / 2;
+            } else if (this.selectedTool === "circle") {
+                const radius = Math.max(e.clientX - this.startX, e.clientY - this.startY) / 2;
                 const centerX = this.startX + radius;
                 const centerY = this.startY + radius;
                 this.ctx.beginPath();
@@ -160,7 +195,8 @@ export class Game {
                 this.ctx.closePath();
             }
         }
-    }
+    };
+    
 
     initMouseHandlers() {
         // arrow function - this keyword is lexically bound i.e. it will refer to the class instance
