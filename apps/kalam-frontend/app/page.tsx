@@ -27,7 +27,7 @@ function App() {
   }
 
   return (
-    <div className={`min-h-screen ${isDarkMode ? "bg-black text-gray-100" : "bg-white text-gray-900"}`}>
+    <div className={`min-h-screen ${isDarkMode ? "bg-black text-gray-100" : "bg-white text-gray-900"} bg-[url("C:\Users\KIIT0001\Downloads\gradii-1920x1080 (1).png")]`}>
       {/* Hero Section */}
       <nav
         className={`fixed top-0 w-full ${isDarkMode ? "bg-gray-950/80" : "bg-gray-50/80"} backdrop-blur-sm z-50 border-b ${isDarkMode ? "border-gray-800" : "border-gray-200"}`}
@@ -79,20 +79,27 @@ function App() {
           </div>
         </div>
       </nav>
-
       <main>
-        <div className="w-full pt-32 pb-20 sm:px-6">
-          <div className="w-[calc(100%-4rem)] mx-auto rounded-md h-[30rem] overflow-hidden">
-            <Vortex
+        <div className="w-full h-auto pt-32 pb-20 sm:px-6 overflow-hidden">
+        <div className="w-full mx-auto rounded-md h-auto">
+        <Vortex
               backgroundColor={isDarkMode ? "black" : "white"}
               className="flex items-center flex-col justify-center px-2 md:px-10 py-4 w-full h-full"
+          //@ts-ignore
+
+              baseHue={190} rangeHue={100}
             >
               <h2
-                className={`${isDarkMode ? "text-white" : "text-gray-900"} text-2xl md:text-6xl font-bold text-center`}
+                className={`${isDarkMode ? "font-[Satisfy] text-white" : "text-gray-900"} text-2xl md:text-7xl text-center`}
               >
                 Ideas begin here. <br /> Bring them to life with <br />
-                <span className="text-indigo-700 pt-4">KALAM</span>
               </h2>
+              <div className="relative overflow-visible flex justify-center items-center">
+              <span className="overflow-visible bg-gradient-to-r from-indigo-500 via-indigo-400 to-blue-700 bg-clip-text text-transparent font-[Satisfy] pt-4 font-bold text-9xl  whitespace-nowrap">
+                Kalam.
+              </span>
+            </div>
+
               <p
                 className={`${isDarkMode ? "text-white" : "text-gray-700"} text-sm md:text-2xl max-w-xl mt-6 text-center`}
               >

@@ -1,6 +1,15 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Kalam, Satisfy } from "next/font/google";
 import "./globals.css";
+
+const kalam = Kalam({
+  weight: '400',
+  subsets: ['latin'],
+})
+const satisfy = Satisfy({
+  weight: '400',
+  subsets: ['latin'],
+})
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
