@@ -104,12 +104,6 @@ app.post("/room",  middleware, async(req, res) => {
 })
 
 app.get("/room", middleware, async (req, res) => {
-    const parsedData = CreateRoomSchema.safeParse(req.body);
-
-    if (!parsedData.success) {
-        res.json({ message: "Invalid data" })
-        return;
-    }
 
     try {
         const rooms = await prisma.room.findMany();

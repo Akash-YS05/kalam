@@ -1,55 +1,63 @@
 "use client"
 
-import { useState } from "react"
+interface Room {
+  id: number
+  slug: string
+}
+
+import { useEffect, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Plus, Edit2, Trash2 } from "lucide-react"
 import { Link } from "react-router-dom"
-
-const initialRooms = [
-  { id: 1, name: "Project Brainstorm", lastEdited: "2023-07-01", participants: 5 },
-  { id: 2, name: "Weekly Team Meeting", lastEdited: "2023-06-28", participants: 8 },
-  { id: 3, name: "Product Design Review", lastEdited: "2023-06-25", participants: 4 },
-]
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1
-    }
-  }
-}
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      type: "spring",
-      stiffness: 100,
-      damping: 15
-    }
-  }
-}
+import axios from "axios"
+import { HTTP_URL } from "@/config"
 
 export default function Dashboard() {
-  const [rooms, setRooms] = useState(initialRooms)
+  const [rooms, setRooms] = useState<Room[]>([])
   const [newRoomName, setNewRoomName] = useState("")
 
-  const handleCreateRoom = () => {
-    if (newRoomName.trim()) {
-      const newRoom = {
-        id: rooms.length + 1,
-        name: newRoomName,
-        lastEdited: new Date().toISOString().split("T")[0],
-        participants: 1,
-      }
-      setRooms([...rooms, newRoom])
-      setNewRoomName("")
+  const fetchRooms = async() => {
+    try {
+      const token = localStorage.getItem("token")
+      const response = await axios.get<Room[]>(`${HTTP_URL}/room`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+      //@ts-ignore
+      setRooms(response.data.rooms || response.data)
+    } catch(err: any) {
+      console.error("Error fetching rooms:", err.response?.data || err.message);
     }
   }
+
+  useEffect(() => {
+    fetchRooms();
+  }, [])
+
+  const handleCreateRoom = async() => {
+    if (!newRoomName.trim()) return;
+      try {
+
+        const token = localStorage.getItem("token")
+
+        const response = await axios.post(`${HTTP_URL}/room`, {
+          name: newRoomName
+        }, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        })
+        console.log("Created room response:", response.data);
+
+        await fetchRooms()
+        setNewRoomName("")
+
+      } catch (err: any) {
+        console.error("Create room error:", err.response?.data || err.message)
+    }
+  
+}
 
   const handleDeleteRoom = (id: number) => {
     setRooms(rooms.filter((room) => room.id !== id))
@@ -57,106 +65,47 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background text-foreground p-8">
-      <motion.div
-        initial="hidden"
-        animate="visible"
-        variants={containerVariants}
-        className="max-w-7xl mx-auto space-y-8"
-      >
-        <motion.h1 
-          variants={itemVariants}
-          className="text-4xl font-bold tracking-tight"
-        >
-          Your Kalam Rooms
-        </motion.h1>
+      <motion.div className="max-w-7xl mx-auto space-y-8">
+        <motion.h1 className="text-4xl font-bold">Your Kalam Rooms</motion.h1>
 
-        <motion.div 
-          variants={itemVariants}
-          className="glass-card rounded-xl p-6 space-y-4"
-        >
-          <div className="space-y-2">
-            <h2 className="text-xl font-semibold">Create a New Room</h2>
-            <p className="text-muted-foreground">
-              Start a new collaborative whiteboard session
-            </p>
-          </div>
-          
-          <div className="flex items-end gap-4">
-            <div className="flex-1 space-y-2">
-              <label
-                htmlFor="new-room-name"
-                className="text-sm font-medium"
-              >
-                Room Name
-              </label>
-              <input
-                id="new-room-name"
-                className="w-full px-3 py-2 bg-background/50 backdrop-blur-sm border rounded-lg 
-                         focus:outline-none focus:ring-2 focus:ring-ring transition-all duration-200"
-                value={newRoomName}
-                onChange={(e) => setNewRoomName(e.target.value)}
-                placeholder="Enter room name"
-              />
-            </div>
-            <button
-              onClick={handleCreateRoom}
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 
-                       focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 
-                       transition-all duration-200 flex items-center gap-2"
-            >
+        <div className="glass-card p-6 rounded-xl">
+          <h2 className="text-xl font-semibold">Create a New Room</h2>
+          <div className="flex gap-4 mt-3">
+            <input
+              className="border p-2 rounded w-full"
+              value={newRoomName}
+              onChange={(e) => setNewRoomName(e.target.value)}
+              placeholder="Enter room name"
+            />
+            <button onClick={handleCreateRoom} className="bg-indigo-600 text-white px-4 py-2 rounded">
               <Plus className="h-4 w-4" />
-              Create Room
             </button>
           </div>
-        </motion.div>
+        </div>
 
-        <motion.div 
-          variants={containerVariants}
-          className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
-        >
+        <motion.div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           <AnimatePresence>
-            {rooms.map((room) => (
-              <motion.div
-                key={room.id}
-                variants={itemVariants}
-                layout
-                className="glass-card rounded-xl overflow-hidden"
-              >
-                <div className="p-6 space-y-4">
-                  <h3 className="text-lg font-semibold">{room.name}</h3>
-                  <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground">
-                      Last edited: {room.lastEdited}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {room.participants} participant(s)
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="border-t border-border/50 px-6 py-4 flex justify-between">
-                  {/* <Link
-                    to={`/room/${room.id}`}
-                    className="text-primary hover:opacity-80 font-medium flex items-center gap-2
-                             transition-all duration-200"
-                  >
-                    <Edit2 className="h-4 w-4" />
-                    Edit
-                  </Link> */}
+          {rooms.length > 0 ? (
+              rooms.map((room) => (
+                <motion.div key={room.id} className="glass-card p-6 rounded-xl">
+                  <h3 className="text-lg font-semibold">{room.slug}</h3> {/* ✅ Show correct field */}
+                  <p className="text-sm text-muted-foreground">Slug: {room.slug}</p>
+                  <p className="text-sm text-muted-foreground">ID: {room.id}</p>
                   <button
                     onClick={() => handleDeleteRoom(room.id)}
-                    className="text-destructive hover:opacity-80 font-medium flex items-center gap-2
-                             transition-all duration-200"
+                    className="text-red-600 hover:text-red-800 flex items-center gap-2"
                   >
                     <Trash2 className="h-4 w-4" />
                     Delete
                   </button>
-                </div>
-              </motion.div>
-            ))}
+                </motion.div>
+              ))
+            ) : (
+              <p className="text-gray-500">No rooms available.</p>
+            )}
           </AnimatePresence>
         </motion.div>
       </motion.div>
     </div>
-  )
+  );
 }
