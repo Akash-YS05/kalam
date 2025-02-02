@@ -8,14 +8,18 @@
 
 "use client"
 
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import axios from "axios"
+import { HTTP_URL } from "@/config"
 
 export default function SignIn() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
+  const passRef = useRef<HTMLInputElement>(null)
+  const emailRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -23,8 +27,16 @@ export default function SignIn() {
     setError("")
 
     try {
-      // Here you would typically call your authentication API
-      // For now, we'll just simulate a successful login
+      const email = emailRef.current?.value
+      const password = passRef.current?.value
+
+      const response = await axios.post(`${HTTP_URL}/signin`, {
+        email,
+        password
+      })
+
+      const jwt = await response.data.token
+      localStorage.setItem("token", jwt)
       console.log("Signing in with:", email, password)
       router.push("/dashboard")
     } catch (err) {
@@ -47,6 +59,7 @@ export default function SignIn() {
                 Email address
               </label>
               <input
+                ref={emailRef}
                 id="email-address"
                 name="email"
                 type="email"
@@ -63,6 +76,7 @@ export default function SignIn() {
                 Password
               </label>
               <input
+                ref={passRef}
                 id="password"
                 name="password"
                 type="password"

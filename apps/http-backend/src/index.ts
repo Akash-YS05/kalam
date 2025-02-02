@@ -21,7 +21,7 @@ app.post("/signup", async(req, res) => {
         const hashedPassword = await bcrypt.hash(parsedData.data.password, 10);
         const user = await prisma.user.create({
             data: {
-                email: parsedData.data.username,
+                email: parsedData.data.email,
                 password: hashedPassword,
                 name: parsedData.data.name
             }
@@ -45,7 +45,7 @@ app.post("/signin", async(req, res) => {
     try {
         const user = await prisma.user.findUnique({
             where: {
-                email: parsedData.data.username
+                email: parsedData.data.email
             }
         })
         if (!user) {
@@ -101,6 +101,23 @@ app.post("/room",  middleware, async(req, res) => {
         res.status(411).json({ message: "Something went wrong" })
     }
 
+})
+
+app.get("/room", middleware, async (req, res) => {
+    const parsedData = CreateRoomSchema.safeParse(req.body);
+
+    if (!parsedData.success) {
+        res.json({ message: "Invalid data" })
+        return;
+    }
+
+    try {
+        const rooms = await prisma.room.findMany();
+        res.json({ rooms });
+    } catch (e) {
+        console.error("Error fetching rooms:", e);
+        res.status(500).json({ message: "Something went wrong" });
+    }
 })
 
 app.get("/chats/:roomId", async(req, res) => {
