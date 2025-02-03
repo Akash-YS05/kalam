@@ -5,9 +5,24 @@ import { Pencil, Share2, Shapes, Sparkles, ArrowRight, Github, Twitter, Sun, Moo
 import { Vortex } from "@/components/ui/vortex"
 import { FlipWords } from "@/components/ui/flip-words"
 import { PlaceholdersAndVanishInput } from "@/components/ui/placeholders-and-vanish-input"
+import { useRouter } from "next/navigation"
 
 function App() {
+  const router = useRouter();
+
   const [isDarkMode, setIsDarkMode] = useState(true)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+
+  useEffect(() => {
+    const token = localStorage.getItem("token")
+    setIsLoggedIn(!!token)
+  })
+
+  function handleLogout() {
+    localStorage.removeItem("token")
+    setIsLoggedIn(false)
+    router.push('/')
+  }
 
   useEffect(() => {
     const observer = new IntersectionObserver((entries) => {
@@ -86,11 +101,27 @@ function App() {
               >
                 {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
               </button>
-              <button
+
+              {isLoggedIn ? (
+                <button
+                  onClick={handleLogout}
+                  className={`hidden md:block px-4 py-2 ${isDarkMode ? "text-gray-300 hover:text-white" : "text-gray-700 hover:text-gray-900"} transition-colors font-medium`}
+                >
+                  Logout
+                </button>
+              ) : (
+                <button
+                  onClick={() => router.push('/signin')}
+                  className={`hidden md:block px-4 py-2 ${isDarkMode ? "text-gray-300 hover:text-white" : "text-gray-700 hover:text-gray-900"} transition-colors font-medium`}
+                >
+                  Sign in
+                </button>
+              )}
+              {/* <button
                 className={`hidden md:block px-4 py-2 ${isDarkMode ? "text-gray-300 hover:text-white" : "text-gray-700 hover:text-gray-900"} transition-colors font-medium`}
               >
                 Sign in
-              </button>
+              </button> */}
               <button className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-all transform hover:scale-105 duration-200 font-medium">
                 Try Now
               </button>

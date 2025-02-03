@@ -1,14 +1,6 @@
-// import AuthPage from "@/components/AuthPage";
-
-// export default function Signup() {
-//   return (  
-//     <AuthPage isSignin={true}/>
-//   )
-// }
-
 "use client"
 
-import { useRef, useState } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import axios from "axios"
@@ -18,8 +10,6 @@ export default function SignIn() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
-  const passRef = useRef<HTMLInputElement>(null)
-  const emailRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -27,19 +17,18 @@ export default function SignIn() {
     setError("")
 
     try {
-      const email = emailRef.current?.value
-      const password = passRef.current?.value
+      const response = await axios.post(`${HTTP_URL}/signin`, { email, password })
 
-      const response = await axios.post(`${HTTP_URL}/signin`, {
-        email,
-        password
-      })
-
-      const jwt = await response.data.token
-      localStorage.setItem("token", jwt)
-      console.log("Signing in with:", email, password)
-      router.push("/dashboard")
+      if (response.data && response.data.token) {
+        localStorage.setItem("token", response.data.token)
+        console.log("Signed in successfully:", email)
+        router.push("/dashboard")
+      } else {
+        throw new Error("Invalid token response")
+      }
+      
     } catch (err) {
+      console.error("Sign-in error:", err)
       setError("Failed to sign in. Please check your credentials.")
     }
   }
@@ -47,42 +36,37 @@ export default function SignIn() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
       <div className="max-w-md w-full space-y-8 p-8 bg-white dark:bg-gray-800 rounded-xl shadow-md">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
-            Sign in to your account
-          </h2>
-        </div>
+        <h2 className="text-center text-3xl font-extrabold text-gray-900 dark:text-white">
+          Sign in to your account
+        </h2>
+
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
-              <label htmlFor="email-address" className="sr-only">
-                Email address
-              </label>
+              <label htmlFor="email" className="sr-only">Email address</label>
               <input
-                ref={emailRef}
-                id="email-address"
+                id="email"
                 name="email"
                 type="email"
                 autoComplete="email"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+                aria-label="Email address"
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
                 placeholder="Email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
             <div>
-              <label htmlFor="password" className="sr-only">
-                Password
-              </label>
+              <label htmlFor="password" className="sr-only">Password</label>
               <input
-                ref={passRef}
                 id="password"
                 name="password"
                 type="password"
                 autoComplete="current-password"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+                aria-label="Password"
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -90,16 +74,16 @@ export default function SignIn() {
             </div>
           </div>
 
-          <div>
-            <button
-              type="submit"
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              Sign in
-            </button>
-          </div>
+          <button
+            type="submit"
+            className="w-full py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            Sign in
+          </button>
         </form>
+
         {error && <p className="mt-2 text-center text-sm text-red-600 dark:text-red-400">{error}</p>}
+
         <div className="text-center">
           <Link
             href="/signup"
@@ -112,4 +96,3 @@ export default function SignIn() {
     </div>
   )
 }
-
