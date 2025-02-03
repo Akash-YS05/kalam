@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react"
 import { Pencil, Share2, Shapes, Sparkles, ArrowRight, Github, Twitter, Sun, Moon } from "lucide-react"
 import { Vortex } from "@/components/ui/vortex"
+import { FlipWords } from "@/components/ui/flip-words"
+import { PlaceholdersAndVanishInput } from "@/components/ui/placeholders-and-vanish-input"
 
 function App() {
   const [isDarkMode, setIsDarkMode] = useState(true)
@@ -25,6 +27,23 @@ function App() {
     setIsDarkMode(!isDarkMode)
     document.documentElement.classList.toggle("dark")
   }
+
+  const words = ["Kalam", "कलम"];
+  const placeholders = [
+    "Start something new",
+    "Bring your team in",
+    "Sketch your vision",
+    "Turn your thoughts into reality",
+  ];
+  
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log(e.target.value);
+  };
+  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    console.log("submitted");
+  };
 
   return (
     <div className={`min-h-screen ${isDarkMode ? "bg-black text-gray-100" : "bg-white text-gray-900"} bg-[url("C:\Users\KIIT0001\Downloads\gradii-1920x1080 (1).png")]`}>
@@ -92,21 +111,21 @@ function App() {
               <h2
                 className={`${isDarkMode ? "font-[Satisfy] text-white" : "text-gray-900"} text-2xl md:text-7xl text-center`}
               >
-                Ideas begin here. <br /> Bring them to life with <br />
+                Ideas begin here . <br /> Bring them to life with <br />
               </h2>
               <div className="relative overflow-visible flex justify-center items-center">
-              <span className="overflow-visible bg-gradient-to-r from-indigo-500 via-indigo-400 to-blue-700 bg-clip-text text-transparent font-[Satisfy] pt-4 font-bold text-9xl  whitespace-nowrap">
-                Kalam.
-              </span>
-            </div>
+                <span className="overflow-visible bg-gradient-to-r from-indigo-500 via-indigo-400 to-blue-700 bg-clip-text text-transparent font-[Tillana] tracking-wide pt-4 font-bold text-9xl whitespace-nowrap">
+                <FlipWords words={words} />
+                </span>
+              </div>
 
               <p
-                className={`${isDarkMode ? "text-white" : "text-gray-700"} text-sm md:text-2xl max-w-xl mt-6 text-center`}
+                className={`${isDarkMode ? "text-white" : "text-gray-700"} text-sm md:text-xl max-w-xl mt-6 text-center`}
               >
                 Create beautiful diagrams, wireframes, and illustrations with our intuitive whiteboard tool. Perfect for
                 teams and individuals.
               </p>
-              <div className="flex flex-col sm:flex-row justify-center gap-4 p-4">
+              <div className="flex flex-col sm:flex-row justify-center gap-4 py-8">
                 <button className="px-8 py-3 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-all transform hover:scale-105 duration-200 flex items-center justify-center space-x-2 font-medium">
                   <span>Start Drawing</span>
                   <ArrowRight className="w-5 h-5" />
@@ -121,9 +140,16 @@ function App() {
           </div>
         </div>
 
+        
         {/* Features */}
-        <section id="features" className={`py-20 ${isDarkMode ? "bg-gray-900" : "bg-gray-100"}`}>
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <section id="features" className={`py-10 ${isDarkMode ? "bg-slate-950" : "bg-gray-100"}`}>
+        <PlaceholdersAndVanishInput
+        placeholders={placeholders}
+        onChange={handleChange}
+        onSubmit={onSubmit}
+      />
+
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 sm:py-6">
             <div className="text-center mb-16 fade-in">
               <h2 className={`text-3xl font-bold ${isDarkMode ? "text-white" : "text-gray-900"} mb-4 font-display`}>
                 Why Choose Kalam?

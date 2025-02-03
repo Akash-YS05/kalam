@@ -1,8 +1,17 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Kalam, Satisfy } from "next/font/google";
+import { Geist, Geist_Mono, Kalam, Satisfy, Gotu, Tillana } from "next/font/google";
 import "./globals.css";
 
 const kalam = Kalam({
+  weight: '400',
+  subsets: ['latin'],
+})
+
+const tillana = Tillana({
+  weight: '400',
+  subsets: ['latin'],
+})
+const gotu = Gotu({
   weight: '400',
   subsets: ['latin'],
 })
