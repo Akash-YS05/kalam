@@ -45,7 +45,7 @@ export const FlipWords = ({
         }}
         transition={{
           type: "spring",
-          stiffness: 100,
+          stiffness: 150,
           damping: 10,
         }}
         exit={{

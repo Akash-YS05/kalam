@@ -6,6 +6,7 @@ import { Vortex } from "@/components/ui/vortex"
 import { FlipWords } from "@/components/ui/flip-words"
 import { PlaceholdersAndVanishInput } from "@/components/ui/placeholders-and-vanish-input"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 
 function App() {
   const router = useRouter();
@@ -105,14 +106,14 @@ function App() {
               {isLoggedIn ? (
                 <button
                   onClick={handleLogout}
-                  className={`hidden md:block px-4 py-2 ${isDarkMode ? "text-gray-300 hover:text-white" : "text-gray-700 hover:text-gray-900"} transition-colors font-medium`}
+                  className={`hidden md:block px-4 py-2 ${isDarkMode ? "text-gray-300 hover:text-white" : "text-gray-700 hover:text-gray-900"} transition-colors font-medium px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transform hover:scale-105 duration-200`}
                 >
                   Logout
                 </button>
               ) : (
                 <button
                   onClick={() => router.push('/signin')}
-                  className={`hidden md:block px-4 py-2 ${isDarkMode ? "text-gray-300 hover:text-white" : "text-gray-700 hover:text-gray-900"} transition-colors font-medium`}
+                  className={`hidden md:block px-4 py-2 ${isDarkMode ? "text-gray-300 hover:text-white" : "text-gray-700 hover:text-gray-900"} transition-colors font-medium px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transform hover:scale-105 duration-200`}
                 >
                   Sign in
                 </button>
@@ -122,9 +123,7 @@ function App() {
               >
                 Sign in
               </button> */}
-              <button className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-all transform hover:scale-105 duration-200 font-medium">
-                Try Now
-              </button>
+
             </div>
           </div>
         </div>
@@ -142,11 +141,11 @@ function App() {
               <h2
                 className={`${isDarkMode ? "font-[Satisfy] text-white" : "text-gray-900"} text-2xl md:text-7xl text-center`}
               >
-                Ideas begin here . <br /> Bring them to life with <br />
+                Ideas begin here <br /> Bring them to life with <br />
               </h2>
               <div className="relative overflow-visible flex justify-center items-center">
-                <span className="overflow-visible bg-gradient-to-r from-indigo-500 via-indigo-400 to-blue-700 bg-clip-text text-transparent font-[Tillana] tracking-wide pt-4 font-bold text-9xl whitespace-nowrap">
-                <FlipWords words={words} />
+                <span className="overflow-visible bg-gradient-to-r from-indigo-500 via-indigo-400 to-blue-700 bg-clip-text text-transparent font-[Tillana] tracking-wide pt-4 font-bold text-9xl">
+                  Kalam
                 </span>
               </div>
 
@@ -157,15 +156,21 @@ function App() {
                 teams and individuals.
               </p>
               <div className="flex flex-col sm:flex-row justify-center gap-4 py-8">
-                <button className="px-8 py-3 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-all transform hover:scale-105 duration-200 flex items-center justify-center space-x-2 font-medium">
-                  <span>Start Drawing</span>
+                <Link href={isLoggedIn ? "/drawing" : "/signin"} passHref>
+                  <button className="px-8 py-3 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-all transform hover:scale-105 duration-200 flex items-center justify-center space-x-2 font-medium">
+                    <span>{isLoggedIn ? "Start Drawing" : "Sign In"}</span>
+                    <ArrowRight className="w-5 h-5" />
+                  </button>
+                </Link>
+                <Link href='#how-it-works' passHref>
+                <button
+                  className={`px-8 py-3 border-2 ${isDarkMode ? "border-gray-800 text-gray-300 hover:border-primary-500 hover:text-primary-400" : "border-gray-300 text-gray-700 hover:border-primary-500 hover:text-primary-600"} rounded-lg transition-all font-medium flex items-center gap-2`}
+                >
+                  How it Works
                   <ArrowRight className="w-5 h-5" />
                 </button>
-                <button
-                  className={`px-8 py-3 border-2 ${isDarkMode ? "border-gray-800 text-gray-300 hover:border-primary-500 hover:text-primary-400" : "border-gray-300 text-gray-700 hover:border-primary-500 hover:text-primary-600"} rounded-lg transition-all font-medium`}
-                >
-                  Watch Demo
-                </button>
+                </Link>
+                
               </div>
             </Vortex>
           </div>
@@ -277,7 +282,7 @@ function App() {
         </section>
 
         {/* CTA */}
-        <section className="py-20">
+        <section id="pricing" className="py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="bg-primary-600 rounded-2xl p-8 md:p-16 text-center fade-in relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-primary-700"></div>
