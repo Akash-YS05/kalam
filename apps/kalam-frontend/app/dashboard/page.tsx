@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Trash2, Loader2 } from "lucide-react";
+import { Plus, Trash2, Loader2, Share2 } from "lucide-react";
 import axios from "axios";
 import { HTTP_URL } from "@/config";
 
@@ -62,6 +62,10 @@ export default function Dashboard() {
       console.error("Delete room error:", err.response?.data || err.message);
     }
   };
+
+  const handleShare = () => {
+    
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-black to-gray-900 p-8">
@@ -138,8 +142,11 @@ export default function Dashboard() {
                   layout
                 >
                   <div className="absolute inset-0 rounded-xl border border-purple-600 opacity-20 group-hover:opacity-50 transition-all duration-300"></div>
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-xl font-bold text-white mb-2">{room.slug}</h3>
+                    <Share2 className="text-white cursor-pointer" onClick={handleShare}></Share2>
+                  </div>
                   
-                  <h3 className="text-xl font-bold text-white mb-2">{room.slug}</h3>
                   <p className="text-sm text-gray-400 mb-1">Slug: {room.slug}</p>
                   <p className="text-sm text-gray-400 mb-4">ID: {room.id}</p>
                   <motion.button
