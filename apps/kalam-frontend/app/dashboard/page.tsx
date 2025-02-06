@@ -63,9 +63,20 @@ export default function Dashboard() {
     }
   };
 
-  const handleShare = () => {
-    
-  }
+  const handleShare = async (roomId: number) => {
+    const roomUrl = `${window.location.origin}/room/${roomId}`;
+  
+    console.log("Trying to copy:", roomUrl); // Debugging
+  
+    try {
+      await navigator.clipboard.writeText(roomUrl);
+      alert(`✅ Room URL copied: ${roomUrl}`);
+    } catch (err) {
+      console.error("❌ Clipboard error:", err);
+      alert("❌ Failed to copy room URL. Please try again.");
+    }
+  };
+  
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-black to-gray-900 p-8">
@@ -141,10 +152,21 @@ export default function Dashboard() {
                   transition={{ duration: 0.3 }}
                   layout
                 >
-                  <div className="absolute inset-0 rounded-xl border border-purple-600 opacity-20 group-hover:opacity-50 transition-all duration-300"></div>
+                  {/* <div className="absolute inset-0 rounded-xl border border-purple-600 opacity-20 group-hover:opacity-50 transition-all duration-300"></div> */}
                   <div className="flex justify-between items-center mb-4">
                     <h3 className="text-xl font-bold text-white mb-2">{room.slug}</h3>
-                    <Share2 className="text-white cursor-pointer" onClick={handleShare}></Share2>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleShare(room.id)
+                      } } 
+                      className="p-2 rounded-md hover:bg-gray-800 transition"
+                      aria-label="Share Room"
+                    >
+                      <Share2 className="w-6 h-6 text-white cursor-pointer" />
+                    </button>
+
+ 
                   </div>
                   
                   <p className="text-sm text-gray-400 mb-1">Slug: {room.slug}</p>
