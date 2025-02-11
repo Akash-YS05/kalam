@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react"
-import { Circle, Pencil, RectangleHorizontal, Sun, Moon } from "lucide-react"
+import { Circle, Pencil, RectangleHorizontal, Sun, Moon, Home, LayoutDashboard, LogOut } from "lucide-react"
 import { Game } from "@/draw/Game";
 
 export type Tool = "pencil" | "rect" | "circle"
@@ -28,7 +28,7 @@ function Topbar({
 }) {
   return (
     <div className="fixed top-10 left-10">
-      <div className="flex gap-4">
+      <div className="flex gap-4 p-3 border-2 border-indigo-600 rounded-md bg-gray-100 dark:bg-gray-900">
         <IconButton
           onClick={() => setSelectedTool("pencil")}
           activated={selectedTool === "pencil"}
@@ -45,6 +45,10 @@ function Topbar({
           icon={<Circle />}
         />
         <IconButton onClick={toggleTheme} activated={false} icon={isDarkMode ? <Sun /> : <Moon />} />
+      </div>
+      <div className="fixed flex gap-4 top-10 right-10 p-4 border-2 border-indigo-600 rounded-md bg-gray-100 dark:bg-gray-900 justify-end">
+        <button><Home/></button>
+        <button><LogOut/></button>
       </div>
     </div>
   )
