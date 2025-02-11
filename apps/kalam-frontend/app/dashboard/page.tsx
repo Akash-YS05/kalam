@@ -2,9 +2,11 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Trash2, Loader2, Share2 } from "lucide-react";
+import { Plus, Trash2, Loader2, Share2, PenTool } from "lucide-react";
 import axios from "axios";
 import { HTTP_URL } from "@/config";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 interface Room {
   id: number;
@@ -15,6 +17,7 @@ export default function Dashboard() {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [newRoomName, setNewRoomName] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
 
   const fetchRooms = useCallback(async () => {
     setIsLoading(true);
@@ -80,20 +83,24 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-black to-gray-900 p-8">
+     
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="max-w-5xl mx-auto space-y-8"
       >
+       
+
         {/* Title */}
         <motion.h1
-          className="text-5xl font-extrabold text-white text-center mb-12"
+        
+          className="text-5xl font-extrabold text-white text-center mb-12 font-[Gotu]"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.5 }}
         >
-          Your Kalam Rooms
+          Your Gallery
         </motion.h1>
 
         {/* Create Room Section */}
@@ -103,7 +110,7 @@ export default function Dashboard() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.4, duration: 0.5 }}
         >
-          <h2 className="text-2xl font-bold text-white mb-6">Create a New Room</h2>
+          <h2 className="text-2xl font-bold text-white mb-6 font-[Gotu]">Create a New Room</h2>
           <div className="flex gap-4">
             <input
               className="bg-gray-800 text-white placeholder-gray-400 border-0 p-3 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-200"
@@ -129,6 +136,7 @@ export default function Dashboard() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6, duration: 0.5 }}
         >
+         
           <AnimatePresence>
             {isLoading ? (
               <motion.div
@@ -137,49 +145,75 @@ export default function Dashboard() {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
               >
-                <Loader2 className="h-8 w-8 text-purple-500 animate-spin" />
+          
+                <Loader2 className="h-8 w-8 text-indigo-500 animate-spin" />
               </motion.div>
             ) : rooms.length > 0 ? (
               rooms.map((room) => (
                 <motion.div
                   key={room.id}
-                  className="relative p-6 rounded-md shadow-lg backdrop-blur-xl border border-white/10
-                  bg-gradient-to-r from-gray-900/40 to-gray-800/50 hover:bg-gray-800/80
-                  transition-all duration-300 transform hover:-translate-y-2 hover:shadow-xl"
+                  className="relative p-8 rounded-md shadow-2xl overflow-hidden
+                             transition-all duration-300 transform hover:-translate-y-2 hover:shadow-3xl group"
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
                   transition={{ duration: 0.3 }}
                   layout
                 >
-                  {/* <div className="absolute inset-0 rounded-xl border border-purple-600 opacity-20 group-hover:opacity-50 transition-all duration-300"></div> */}
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-xl font-bold text-white mb-2">{room.slug}</h3>
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handleShare(room.id)
-                      } } 
-                      className="p-2 rounded-md hover:bg-gray-800 transition"
-                      aria-label="Share Room"
+                  <div
+                    className="absolute inset-0 bg-cover bg-center bg-no-repeat filter blur-[2px]"
+                    style={{
+                      backgroundImage: "url('https://i.pinimg.com/736x/25/cc/1b/25cc1b47ef2eed4310736146d083f316.jpg')",
+                    }}
+                  ></div>
+                  {/* <div className="absolute inset-0 bg-black bg-opacity-40 backdrop-blur-sm transition-opacity duration-300 group-hover:bg-opacity-30"></div> */}
+                  <div className="relative z-10">
+                    <div
+                      onClick={() => router.push(`/canvas/${room.id}`)}
+                      className="flex justify-between items-center mb-6"
                     >
-                      <Share2 className="w-6 h-6 text-white cursor-pointer" />
-                    </button>
+                      <h3 className="text-2xl font-bold text-white mb-2 font-[Gotu] ">
+                        {room.slug}
+                      </h3>
+                      <div className="flex space-x-2">
+                        <motion.button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleShare(room.id)
+                          }}
+                          className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors duration-300"
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                          aria-label="Share Room"
+                        >
+                          <Share2 className="w-5 h-5 text-white " />
+                        </motion.button>
+                        <motion.button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleDeleteRoom(room.id)
+                          }}
+                          className="p-2 rounded-lg bg-white/10 transition-colors duration-300"
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                        >
+                          <Trash2 className="h-5 w-5 text-white group-hover:text-red-300" />
+                        </motion.button>
+                      </div>
+                    </div>
 
- 
+                    <p className="text-sm text-gray-200 mb-1">Slug: {room.slug}</p>
+                    <p className="text-sm text-gray-200 mb-6">ID: {room.id}</p>
+
+                    <motion.button
+                      className="flex gap-2 pt-4 text-white items-center group-hover:text-indigo-500 transition-colors duration-300"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <PenTool className="h-5 w-5" />
+                      Enter Canvas
+                    </motion.button>
                   </div>
-                  
-                  <p className="text-sm text-gray-400 mb-1">Slug: {room.slug}</p>
-                  <p className="text-sm text-gray-400 mb-4">ID: {room.id}</p>
-                  <motion.button
-                    onClick={() => handleDeleteRoom(room.id)}
-                    className="text-red-400 hover:text-red-300 flex items-center gap-2 transition duration-200"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <Trash2 className="h-5 w-5" />
-                    Delete
-                  </motion.button>
                 </motion.div>
               ))
             ) : (

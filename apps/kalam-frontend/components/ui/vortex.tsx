@@ -1,9 +1,10 @@
 import { cn } from "@/lib/utils";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { createNoise3D } from "simplex-noise";
 import { motion } from "framer-motion";
 
 interface VortexProps {
+  isDarkMode?: boolean;
   children?: any;
   className?: string;
   containerClassName?: string;
@@ -14,7 +15,7 @@ interface VortexProps {
   rangeSpeed?: number;
   baseRadius?: number;
   rangeRadius?: number;
-  backgroundColor?: string;
+  // backgroundColor?: string;
 }
 
 export const Vortex = (props: VortexProps) => {
@@ -36,12 +37,21 @@ export const Vortex = (props: VortexProps) => {
   const xOff = 0.00125;
   const yOff = 0.00125;
   const zOff = 0.0005;
-  const backgroundColor = props.backgroundColor || "#000000";
+  // const backgroundColor = props.backgroundColor || "#ffffff";
   let tick = 0;
   const noise3D = createNoise3D();
   let particleProps = new Float32Array(particlePropsLength);
   let center: [number, number] = [0, 0];
 
+
+  const [backgroundColor, setBackgroundColor] = useState(
+    props.isDarkMode ? "black" : "white"
+  );
+
+  useEffect(() => {
+    // ✅ Update background color when dark mode changes
+    setBackgroundColor(props.isDarkMode ? "black" : "white");
+  }, [props.isDarkMode]);
   const HALF_PI: number = 0.5 * Math.PI;
   const TAU: number = 2 * Math.PI;
   const TO_RAD: number = Math.PI / 180;
@@ -172,7 +182,13 @@ export const Vortex = (props: VortexProps) => {
     ctx.save();
     ctx.lineCap = "round";
     ctx.lineWidth = radius;
-    ctx.strokeStyle = `hsla(${hue},80%,60%,${fadeInOut(life, ttl)})`;
+
+    const isDarkBg = backgroundColor === "#000000";
+    const particleColor = isDarkBg
+    ? `hsla(${hue}, 80%, 50%, ${fadeInOut(life, ttl)})` 
+    : `hsla(${hue}, 80%, 60%, ${fadeInOut(life, ttl)})`; 
+
+    ctx.strokeStyle = particleColor;
     ctx.beginPath();
     ctx.moveTo(x, y); 
     ctx.lineTo(x2, y2);
@@ -234,7 +250,8 @@ export const Vortex = (props: VortexProps) => {
         resize(canvas, ctx);
       }
     });
-  }, []);
+
+  }, [backgroundColor]);
 
   return (
     <div className={cn("relative h-full w-100", props.containerClassName)}>

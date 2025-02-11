@@ -3,8 +3,7 @@
 import { useEffect, useState } from "react"
 import { Pencil, Share2, Shapes, Sparkles, ArrowRight, Github, Twitter, Sun, Moon } from "lucide-react"
 import { Vortex } from "@/components/ui/vortex"
-import { FlipWords } from "@/components/ui/flip-words"
-import { PlaceholdersAndVanishInput } from "@/components/ui/placeholders-and-vanish-input"
+  import { PlaceholdersAndVanishInput } from "@/components/ui/placeholders-and-vanish-input"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 
@@ -43,8 +42,6 @@ function App() {
     setIsDarkMode(!isDarkMode)
     document.documentElement.classList.toggle("dark")
   }
-
-  const words = ["Kalam", "कलम"];
   const placeholders = [
     "Start something new",
     "Bring your team in",
@@ -132,39 +129,39 @@ function App() {
         <div className="w-full h-auto pt-32 pb-20 sm:px-6 overflow-hidden">
         <div className="w-full mx-auto rounded-md h-auto">
         <Vortex
-              backgroundColor={isDarkMode ? "black" : "white"}
+              isDarkMode={isDarkMode}
               className="flex items-center flex-col justify-center px-2 md:px-10 py-4 w-full h-full"
           //@ts-ignore
 
               baseHue={190} rangeHue={100}
             >
               <h2
-                className={`${isDarkMode ? "font-[Satisfy] text-white" : "text-gray-900"} text-2xl md:text-7xl text-center`}
+                className={`${isDarkMode ? "font-[Satisfy] text-white" : "font-[Satisfy] text-gray-900"} text-2xl md:text-7xl text-center`}
               >
                 Ideas begin here <br /> Bring them to life with <br />
               </h2>
               <div className="relative overflow-visible flex justify-center items-center">
-                <span className="overflow-visible bg-gradient-to-r from-indigo-500 via-indigo-400 to-blue-700 bg-clip-text text-transparent font-[Tillana] tracking-wide pt-4 font-bold text-9xl">
+                <span className="overflow-visible bg-gradient-to-r from-indigo-500 via-indigo-300 to-blue-600 bg-clip-text text-transparent font-[Satisfy] tracking-wide pt-4 font-bold text-9xl">
                   Kalam
                 </span>
               </div>
 
               <p
-                className={`${isDarkMode ? "text-white" : "text-gray-700"} text-sm md:text-xl max-w-xl mt-6 text-center`}
+                className={`${isDarkMode ? "text-white" : "text-gray-700"} text-sm md:text-xl max-w-xl mt-6 text-center font-thin font-[Geist]`}
               >
                 Create beautiful diagrams, wireframes, and illustrations with our intuitive whiteboard tool. Perfect for
                 teams and individuals.
               </p>
               <div className="flex flex-col sm:flex-row justify-center gap-4 py-8">
                 <Link href={isLoggedIn ? "/drawing" : "/signin"} passHref>
-                  <button className="px-8 py-3 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-all transform hover:scale-105 duration-200 flex items-center justify-center space-x-2 font-medium">
+                  <button className="px-8 py-3 font-[Geist] bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-all transform hover:scale-105 duration-200 flex items-center justify-center space-x-2 font-medium">
                     <span>{isLoggedIn ? "Start Drawing" : "Sign In"}</span>
                     <ArrowRight className="w-5 h-5" />
                   </button>
                 </Link>
                 <Link href='#how-it-works' passHref>
                 <button
-                  className={`px-8 py-3 border-2 ${isDarkMode ? "border-gray-800 text-gray-300 hover:border-primary-500 hover:text-primary-400" : "border-gray-300 text-gray-700 hover:border-primary-500 hover:text-primary-600"} rounded-lg transition-all font-medium flex items-center gap-2`}
+                  className={`px-8 py-3 font-[Geist] border-2 ${isDarkMode ? "border-gray-800 text-gray-300 hover:border-primary-500 hover:text-primary-400" : "border-gray-300 text-gray-700 hover:border-primary-500 hover:text-primary-600"} rounded-lg transition-all font-medium flex items-center gap-2`}
                 >
                   How it Works
                   <ArrowRight className="w-5 h-5" />
@@ -178,7 +175,7 @@ function App() {
 
         
         {/* Features */}
-        <section id="features" className={`py-10 ${isDarkMode ? "bg-slate-950" : "bg-gray-100"}`}>
+        <section id="features" className={`font-[Geist] py-10 ${isDarkMode ? "bg-slate-950" : "bg-gray-100"}`}>
         <PlaceholdersAndVanishInput
         placeholders={placeholders}
         onChange={handleChange}
@@ -187,15 +184,15 @@ function App() {
 
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 sm:py-6">
             <div className="text-center mb-16 fade-in">
-              <h2 className={`text-3xl font-bold ${isDarkMode ? "text-white" : "text-gray-900"} mb-4 font-display`}>
+              <h2 className={`text-3xl font-bold font-[Geist] ${isDarkMode ? "text-white" : "text-gray-900"} mb-4 font-display`}>
                 Why Choose Kalam?
               </h2>
-              <p className={`${isDarkMode ? "text-gray-300" : "text-gray-600"} max-w-2xl mx-auto`}>
+              <p className={`${isDarkMode ? "text-gray-300" : "text-gray-600"} max-w-2xl mx-auto font-[Geist]`}>
                 Everything you need to bring your ideas to life, all in one place.
               </p>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-8">
+            <div className="grid md:grid-cols-3 gap-8 font-[Geist] font-light">
               {[
                 {
                   icon: <Share2 className="w-6 h-6" />,
@@ -234,7 +231,7 @@ function App() {
 
         {/* How It Works */}
         <section id="how-it-works" className={`py-20 ${isDarkMode ? "bg-gray-950" : "bg-gray-50"}`}>
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 font-[Geist] font-light">
             <div className="text-center mb-16 fade-in">
               <h2 className={`text-3xl font-bold ${isDarkMode ? "text-white" : "text-gray-900"} mb-4 font-display`}>
                 How It Works

@@ -30,23 +30,17 @@ function Topbar({
     <div className="fixed top-10 left-10">
       <div className="flex gap-4">
         <IconButton
-          onClick={() => {
-            setSelectedTool("pencil")
-          }}
+          onClick={() => setSelectedTool("pencil")}
           activated={selectedTool === "pencil"}
           icon={<Pencil />}
         />
         <IconButton
-          onClick={() => {
-            setSelectedTool("rect")
-          }}
+          onClick={() => setSelectedTool("rect")}
           activated={selectedTool === "rect"}
           icon={<RectangleHorizontal />}
         />
         <IconButton
-          onClick={() => {
-            setSelectedTool("circle")
-          }}
+          onClick={() => setSelectedTool("circle")}
           activated={selectedTool === "circle"}
           icon={<Circle />}
         />
@@ -56,52 +50,50 @@ function Topbar({
   )
 }
 
-export default function Canvas({roomId, socket} : {roomId: string, socket: WebSocket}) {
+export default function Canvas({ roomId, socket }: { roomId: string; socket: WebSocket }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const [game, setGame] = useState<Game>() // Reference to Game class
+  const [selectedTool, setSelectedTool] = useState<Tool>("rect")
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
+    return localStorage.getItem("theme") === "dark"
+  })
 
-    const canvasRef = useRef<HTMLCanvasElement>(null)
-    const [game, setGame] = useState<Game>()  //reference to Game class
-    const [selectedTool, setSelectedTool] = useState<Tool>('rect')
-    const [isDarkMode, setIsDarkMode] = useState(false)
+  const toggleTheme = () => {
+    setIsDarkMode((prev) => {
+      const newMode = !prev
+      document.body.classList.toggle("dark", newMode)
+      localStorage.setItem("theme", newMode ? "dark" : "light")
+      return newMode
+    })
+  }
 
-    const toggleTheme = () => {
-        setIsDarkMode((prev) => !prev)
-        document.body.classList.toggle("dark")
+  useEffect(() => {
+    if (localStorage.getItem("theme") === "dark") {
+      document.body.classList.add("dark")
+    } else {
+      document.body.classList.remove("dark")
     }
+  }, [])
 
-    useEffect(() => {
-        game?.setTool(selectedTool);
-    }, [selectedTool, game])
+  useEffect(() => {
+    game?.setTool(selectedTool)
+  }, [selectedTool, game])
 
-    useEffect(() => {
+  useEffect(() => {
+    if (canvasRef.current) {
+      const g = new Game(canvasRef.current, roomId, socket)
+      setGame(g)
 
-        if (canvasRef.current) {
-            const g = new Game(canvasRef.current, roomId, socket);
-            setGame(g);   
-            
-            return () => {
-                g.destroy();
-        }
-                
+      return () => {
+        g.destroy()
+      }
     }
-
-}, [canvasRef])
+  }, [canvasRef])
 
   return (
     <>
-      <Topbar
-        selectedTool={selectedTool}
-        setSelectedTool={setSelectedTool}
-        isDarkMode={isDarkMode}
-        toggleTheme={toggleTheme}
-      />
-      <canvas
-        ref={canvasRef}
-        height={window.innerHeight}
-        width={window.innerWidth}
-        className={`${isDarkMode ? "bg-gray-900" : "bg-white"}`}
-      ></canvas>
+      <Topbar selectedTool={selectedTool} setSelectedTool={setSelectedTool} isDarkMode={isDarkMode} toggleTheme={toggleTheme} />
+      <canvas ref={canvasRef} height={window.innerHeight} width={window.innerWidth} className={`${isDarkMode ? "bg-gray-900" : "bg-white"}`}></canvas>
     </>
   )
 }
-
-
