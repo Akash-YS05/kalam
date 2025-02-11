@@ -57,6 +57,7 @@ export default function Dashboard() {
   const handleDeleteRoom = async (id: number) => {
     try {
       const token = localStorage.getItem("token");
+      //todo: delete room
       await axios.delete(`${HTTP_URL}/room/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -169,7 +170,7 @@ export default function Dashboard() {
                   {/* <div className="absolute inset-0 bg-black bg-opacity-40 backdrop-blur-sm transition-opacity duration-300 group-hover:bg-opacity-30"></div> */}
                   <div className="relative z-10">
                     <div
-                      onClick={() => router.push(`/canvas/${room.id}`)}
+                      
                       className="flex justify-between items-center mb-6"
                     >
                       <h3 className="text-2xl font-bold text-white mb-2 font-[Gotu] ">
@@ -206,12 +207,15 @@ export default function Dashboard() {
                     <p className="text-sm text-gray-200 mb-6">ID: {room.id}</p>
 
                     <motion.button
-                      className="flex gap-2 pt-4 text-white items-center group-hover:text-indigo-500 transition-colors duration-300"
+                      className=" pt-4 text-white items-center group-hover:text-indigo-500 transition-colors duration-300"
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >
+                      <button className="flex gap-2" onClick={() => router.push(`/canvas/${room.id}`)}>
                       <PenTool className="h-5 w-5" />
                       Enter Canvas
+                      </button>
+                      
                     </motion.button>
                   </div>
                 </motion.div>
