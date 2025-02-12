@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Kalam, Satisfy, Gotu, Tillana } from "next/font/google";
+import { Geist, Geist_Mono, Satisfy, Gotu } from "next/font/google";
 import "./globals.css";
 
 const gotu = Gotu({
