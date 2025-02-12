@@ -6,7 +6,7 @@ import { Plus, Trash2, Loader2, Share2, PenTool } from "lucide-react";
 import axios from "axios";
 import { HTTP_URL } from "@/config";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
+import { NextResponse } from "next/server";
 
 interface Room {
   id: number;
@@ -27,9 +27,11 @@ export default function Dashboard() {
         headers: { Authorization: `Bearer ${token}` },
       });
       setRooms(response.data.rooms || []);
-    } catch (err: any) {
-      console.error("Error fetching rooms:", err.response?.data || err.message);
-    } finally {
+    } catch (error) {
+      console.error(error);
+      return new NextResponse("Something went wrong", { status: 500 });
+  }
+   finally {
       setIsLoading(false);
     }
   }, []);
@@ -49,9 +51,10 @@ export default function Dashboard() {
       );
       await fetchRooms();
       setNewRoomName("");
-    } catch (err: any) {
-      console.error("Create room error:", err.response?.data || err.message);
-    }
+    } catch (error) {
+      console.error(error);
+      return new NextResponse("Something went wrong", { status: 500 });
+  }
   };
 
   const handleDeleteRoom = async (id: number) => {
@@ -62,9 +65,10 @@ export default function Dashboard() {
         headers: { Authorization: `Bearer ${token}` },
       });
       fetchRooms();
-    } catch (err: any) {
-      console.error("Delete room error:", err.response?.data || err.message);
-    }
+    } catch (error) {
+      console.error(error);
+      return new NextResponse("Something went wrong", { status: 500 });
+  }
   };
 
   const handleShare = async (roomId: number) => {
@@ -75,15 +79,15 @@ export default function Dashboard() {
     try {
       await navigator.clipboard.writeText(roomUrl);
       alert(`✅ Room URL copied: ${roomUrl}`);
-    } catch (err) {
-      console.error("❌ Clipboard error:", err);
-      alert("❌ Failed to copy room URL. Please try again.");
-    }
+    } catch (error) {
+      console.error(error);
+      return new NextResponse("Something went wrong", { status: 500 });
+  }
   };
   
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black to-gray-900 p-8">
+    <div className="min-h-screen bg-gradient-to-b from-black to-gray-900 p-8 font-display">
      
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -207,11 +211,11 @@ export default function Dashboard() {
                     <p className="text-sm text-gray-200 mb-6">ID: {room.id}</p>
 
                     <motion.button
-                      className=" pt-4 text-white items-center group-hover:text-indigo-500 transition-colors duration-300"
+                      className=" pt-4 text-white items-center group-hover:text-indigo-300 transition-colors duration-300"
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >
-                      <button className="flex gap-2" onClick={() => router.push(`/canvas/${room.id}`)}>
+                      <button className="flex gap-2 items-center" onClick={() => router.push(`/canvas/${room.id}`)}>
                       <PenTool className="h-5 w-5" />
                       Enter Canvas
                       </button>

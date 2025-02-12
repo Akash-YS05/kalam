@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import axios from "axios"
 import { HTTP_URL } from "@/config"
+import { NextResponse } from "next/server"
 
 export default function SignUp() {
   const [name, setName] = useState("")
@@ -37,23 +38,16 @@ export default function SignUp() {
       console.log("Signup successful:", response.data)
       router.push("/signin")
 
-    } catch (err: any) {
-      console.error("Signup error:", err.response?.data || err.message)
-
-      if (err.response?.status === 400) {
-        setError("Invalid input. Please check your details.")
-      } else if (err.response?.status === 409) {
-        setError("Email already in use. Try a different one.")
-      } else {
-        setError("Something went wrong. Please try again.")
-      }
-    } finally {
+    } catch (error) {
+          console.error(error);
+          return new NextResponse("Something went wrong", { status: 500 });
+      } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900 font-[Gotu]">
       <div className="max-w-md w-full space-y-8 p-8 bg-white dark:bg-gray-800 rounded-xl shadow-md">
         <h2 className="text-center text-3xl font-extrabold text-gray-900 dark:text-white">
           Create your account

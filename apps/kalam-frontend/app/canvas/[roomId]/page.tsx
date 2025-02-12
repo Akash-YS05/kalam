@@ -1,8 +1,6 @@
 
-// import Canvas from "@/components/Canvas";
 import RoomCanvas from "@/components/RoomCanvas";
-import { initDraw } from "@/draw";
-import { useEffect, useRef } from "react"
+
 
 export default async function CanvasPage({params} : {
     params: {
@@ -10,7 +8,7 @@ export default async function CanvasPage({params} : {
     }
 }) {
 
-    const roomId = (await params).roomId;
+    const roomId = params.roomId;
     console.log(roomId);
     
 

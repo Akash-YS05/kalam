@@ -1,10 +1,11 @@
-import { useState, useRef, useEffect } from "react"
-import { Circle, Pencil, RectangleHorizontal, Sun, Moon, Home, LayoutDashboard, LogOut } from "lucide-react"
+import { useState, useRef, useEffect, ReactNode } from "react"
+import { Circle, Pencil, RectangleHorizontal, Sun, Moon, Home, LogOut } from "lucide-react"
 import { Game } from "@/draw/Game";
+import { useRouter } from "next/navigation";
 
 export type Tool = "pencil" | "rect" | "circle"
 
-function IconButton({ onClick, activated, icon }: { onClick: () => void; activated: boolean; icon: any }) {
+function IconButton({ onClick, activated, icon }: { onClick: () => void; activated: boolean; icon: ReactNode }) {
   return (
     <button
       onClick={onClick}
@@ -26,6 +27,7 @@ function Topbar({
   isDarkMode: boolean
   toggleTheme: () => void
 }) {
+  const router = useRouter();
   return (
     <div className="fixed top-10 left-10">
       <div className="flex gap-4 p-3 border-2 border-indigo-600 rounded-md bg-gray-100 dark:bg-gray-900">
@@ -46,9 +48,9 @@ function Topbar({
         />
         <IconButton onClick={toggleTheme} activated={false} icon={isDarkMode ? <Sun /> : <Moon />} />
       </div>
-      <div className="fixed flex gap-4 top-10 right-10 p-4 border-2 border-indigo-600 rounded-md bg-gray-100 dark:bg-gray-900 justify-end">
-        <button><Home/></button>
-        <button><LogOut/></button>
+      <div className="fixed flex gap-4 top-10 right-10 p-3 border-2 border-indigo-600 rounded-md bg-gray-100 dark:bg-gray-900 justify-end">
+        <button onClick={() => router.push('/')} className="hover:bg-gray-500 p-2 rounded"><Home/></button>
+        <button onClick={() => router.push('/dashboard')} className="hover:bg-gray-500 p-2 rounded"><LogOut/></button>
       </div>
     </div>
   )

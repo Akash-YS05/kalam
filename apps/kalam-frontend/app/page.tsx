@@ -59,10 +59,10 @@ function App() {
   };
 
   return (
-    <div className={`min-h-screen ${isDarkMode ? "bg-black text-gray-100" : "bg-white text-gray-900"} bg-[url("C:\Users\KIIT0001\Downloads\gradii-1920x1080 (1).png")]`}>
+    <div className={`min-h-screen ${isDarkMode ? "bg-black text-gray-100" : "bg-white text-gray-900"}`}>
       {/* Hero Section */}
       <nav
-        className={`fixed top-0 w-full ${isDarkMode ? "bg-gray-950/80" : "bg-gray-50/80"} backdrop-blur-sm z-50 border-b ${isDarkMode ? "border-gray-800" : "border-gray-200"}`}
+        className={`fixed top-0 w-full ${isDarkMode ? "bg-gray-950/80" : "bg-gray-50/80"} backdrop-blur-sm z-50 border-b ${isDarkMode ? "border-gray-800" : "border-gray-200"}  font-display`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
@@ -95,7 +95,7 @@ function App() {
             <div className="flex items-center space-x-4">
               <button
                 onClick={toggleTheme}
-                className={`p-2 rounded-full ${isDarkMode ? "bg-gray-800 text-yellow-400" : "bg-gray-200 text-gray-700"}`}
+                className={`p-2 rounded-full ${isDarkMode ? "bg-gray-800 text-white-400" : "bg-gray-200 text-gray-800"}`}
               >
                 {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
               </button>
@@ -115,11 +115,6 @@ function App() {
                   Sign in
                 </button>
               )}
-              {/* <button
-                className={`hidden md:block px-4 py-2 ${isDarkMode ? "text-gray-300 hover:text-white" : "text-gray-700 hover:text-gray-900"} transition-colors font-medium`}
-              >
-                Sign in
-              </button> */}
 
             </div>
           </div>
@@ -131,9 +126,7 @@ function App() {
         <Vortex
               isDarkMode={isDarkMode}
               className="flex items-center flex-col justify-center px-2 md:px-10 py-4 w-full h-full"
-          //@ts-ignore
-
-              baseHue={190} rangeHue={100}
+              baseHue={190}
             >
               <h2
                 className={`${isDarkMode ? "font-[Satisfy] text-white" : "font-[Satisfy] text-gray-900"} text-2xl md:text-7xl text-center`}
@@ -285,10 +278,10 @@ function App() {
               <div className="absolute inset-0 bg-gradient-to-br from-primary-500 to-primary-700"></div>
               <div className="relative">
                 <h2 className="text-3xl font-bold text-white mb-4 font-display">Ready to start creating?</h2>
-                <p className="text-primary-100 mb-8 max-w-2xl mx-auto">
+                <p className="text-primary-100 mb-8 max-w-2xl mx-auto font-display">
                   Join thousands of creators and teams who trust Kalam for their visual communication needs.
                 </p>
-                <button className="px-8 py-4 bg-white text-primary-600 rounded-lg hover:bg-primary-50 transition-colors transform hover:scale-105 duration-200 font-medium">
+                <button className="px-8 py-4 font-display bg-white text-primary-600 rounded-lg hover:bg-primary-50 transition-colors transform hover:scale-105 duration-200 font-medium">
                   Get Started for Free
                 </button>
               </div>
@@ -298,7 +291,7 @@ function App() {
 
         {/* Footer */}
         <footer
-          className={`${isDarkMode ? "bg-gray-900 border-t border-gray-800" : "bg-gray-100 border-t border-gray-200"}`}
+          className={`${isDarkMode ? "bg-gray-900 border-t border-gray-800" : "bg-gray-100 border-t border-gray-200"} font-display`}
         >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
@@ -467,4 +460,3 @@ function App() {
 }
 
 export default App
-

@@ -2,15 +2,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Kalam, Satisfy, Gotu, Tillana } from "next/font/google";
 import "./globals.css";
 
-const kalam = Kalam({
-  weight: '400',
-  subsets: ['latin'],
-})
-
-const tillana = Tillana({
-  weight: '400',
-  subsets: ['latin'],
-})
 const gotu = Gotu({
   weight: '400',
   subsets: ['latin'],
@@ -43,7 +34,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${satisfy.className} ${gotu.className} antialiased`}
       >
         {children}
       </body>

@@ -34,7 +34,7 @@ export default function SignIn() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900 font-[Gotu]">
       <div className="max-w-md w-full space-y-8 p-8 bg-white dark:bg-gray-800 rounded-xl shadow-md">
         <h2 className="text-center text-3xl font-extrabold text-gray-900 dark:text-white">
           Sign in to your account
@@ -89,7 +89,7 @@ export default function SignIn() {
             href="/signup"
             className="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300"
           >
-            Don't have an account? Sign up
+            {"Don't have an account? Sign up"}
           </Link>
         </div>
       </div>
