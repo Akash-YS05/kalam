@@ -8,7 +8,13 @@ export default function RoomCanvas({roomId} : {roomId: string}) {
     const [socket, setSocket] = useState<WebSocket | null>(null);
 
     useEffect(() => {
-        const ws = new WebSocket(`${WS_URL}?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJmYTVhN2ViYi1mYWNhLTQzMDQtYjM0ZC1iNDk5NGU0YjZiOGMiLCJpYXQiOjE3MzgwNzk1NDV9.tVmaWe57lVptBXP6NGD8EEWzyF0aig_N4hFE7PKsMA0`);
+        const token = localStorage.getItem("token");
+        if (!token) {
+            console.error("No token found :(");
+            return;
+        }
+
+        const ws = new WebSocket(`${WS_URL}?token=${token}`);
 
         ws.onopen = () => {
             setSocket(ws);
@@ -30,3 +36,38 @@ export default function RoomCanvas({roomId} : {roomId: string}) {
         <Canvas roomId={roomId} socket={socket}/>
     )
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

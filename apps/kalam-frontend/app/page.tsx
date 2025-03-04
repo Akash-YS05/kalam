@@ -160,6 +160,14 @@ function App() {
                   <ArrowRight className="w-5 h-5" />
                 </button>
                 </Link>
+                <Link href="/dashboard" passHref>
+                <button
+                  className={`px-8 py-3 font-[Geist] border-2 ${isDarkMode ? "border-gray-800 text-gray-300 hover:border-primary-500 hover:text-primary-400" : "border-gray-300 text-gray-700 hover:border-primary-500 hover:text-primary-600"} rounded-lg transition-all font-medium flex items-center gap-2`}
+                >
+                  Go to Dashboard
+                  <ArrowRight className="w-5 h-5" />
+                </button>
+                </Link>
                 
               </div>
             </Vortex>

@@ -23,6 +23,8 @@ export default function Dashboard() {
     setIsLoading(true);
     try {
       const token = localStorage.getItem("token");
+      console.log(token);
+      
       const response = await axios.get<{ rooms: Room[] }>(`${HTTP_URL}/room`, {
         headers: { Authorization: `Bearer ${token}` },
       });
