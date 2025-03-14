@@ -94,7 +94,7 @@ export default function Canvas({ roomId, socket }: { roomId: string; socket: Web
         g.destroy()
       }
     }
-  }, [canvasRef])
+  }, [canvasRef, roomId, socket])
 
   return (
     <>

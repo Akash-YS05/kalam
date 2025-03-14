@@ -21,6 +21,10 @@ export default {
         sans: ['Inter', 'system-ui', 'sans-serif'],
         display: ['Outfit', 'system-ui', 'sans-serif'],
         handwritten: ["Caveat", "cursive"],
+        satisfy: ["Satisfy", 'sans-serif'],
+        // geist: ["var(--font-geist-sans)", 'sans-serif'],
+        geistMono: ["var(--font-geist-mono)"],
+        gotu: ["Gotu", 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
