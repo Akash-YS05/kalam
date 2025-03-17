@@ -1,4 +1,18 @@
-Kalam 🔥
+Kalam (कलम) – Bring Your Ideas to Life.
+Kalam is a digital whiteboard designed for brainstorming and visualizing ideas. Inspired by Excalidraw, it allows users to sketch, collaborate in real-time, and save their drawings effortlessly. Built with Turborepo, Next.js, Node.js, and WebSockets, Kalam ensures a fast, modular, and scalable experience.
+
+🚀 Features
+✅ Freehand Drawing – Draw anything on the canvas, just like a real whiteboard.
+✅ Shapes & Text – Add rectangles, circles, lines, and text annotations.
+✅ Real-time Collaboration – Multiple users can edit the board simultaneously.
+✅ Undo/Redo & Eraser – Correct mistakes effortlessly.
+✅ Optimized Performance – Uses Turborepo for efficient monorepo management.
+
+🏗️ Tech Stack
+Frontend: Next.js (React, TypeScript)
+Backend: Node.js (Express, WebSockets)
+Realtime Communication: WebSockets
+Build System: Turborepo
 
 # Turborepo starter
 
