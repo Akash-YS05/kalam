@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, ReactNode } from "react"
-import { Circle, Pencil, RectangleHorizontal, Sun, Moon, Home, LogOut, ArrowDownRightIcon, Eraser, ArrowBigDown, PencilLine, ArrowRightLeft, EqualApproximately } from "lucide-react"
+import { Circle, RectangleHorizontal, Sun, Moon, Home, LogOut, Eraser, PencilLine, ArrowRightLeft, EqualApproximately, Undo } from "lucide-react"
 import { Game } from "@/draw/Game";
 import { useRouter } from "next/navigation";
 
@@ -21,11 +21,13 @@ function Topbar({
   setSelectedTool,
   isDarkMode,
   toggleTheme,
+  handleUndo
 }: {
   selectedTool: Tool
   setSelectedTool: (s: Tool) => void
   isDarkMode: boolean
   toggleTheme: () => void
+  handleUndo: () => void
 }) {
   const router = useRouter();
   return (
@@ -61,6 +63,8 @@ function Topbar({
           activated={selectedTool === "eraser"}
           icon={<Eraser />}
         />
+        <Undo onClick={() => handleUndo()} />
+        
         <IconButton onClick={toggleTheme} activated={false} icon={isDarkMode ? <Sun /> : <Moon />} />
       </div>
 
@@ -80,6 +84,7 @@ export default function Canvas({ roomId, socket }: { roomId: string; socket: Web
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
     return localStorage.getItem("theme") === "dark"
   })
+
 
   const toggleTheme = () => {
     setIsDarkMode((prev) => {
@@ -113,9 +118,14 @@ export default function Canvas({ roomId, socket }: { roomId: string; socket: Web
     }
   }, [canvasRef, roomId, socket])
 
+  const handleUndo = () => {
+    game?.undo();
+  }
+
+
   return (
     <>
-      <Topbar selectedTool={selectedTool} setSelectedTool={setSelectedTool} isDarkMode={isDarkMode} toggleTheme={toggleTheme} />
+      <Topbar selectedTool={selectedTool} setSelectedTool={setSelectedTool} isDarkMode={isDarkMode} toggleTheme={toggleTheme} handleUndo={handleUndo} />
       <canvas ref={canvasRef} height={window.innerHeight} width={window.innerWidth} className={`${isDarkMode ? "bg-gray-900" : "bg-white"}`}></canvas>
     </>
   )
