@@ -1,15 +1,15 @@
 import { useState, useRef, useEffect, ReactNode } from "react"
-import { Circle, Pencil, RectangleHorizontal, Sun, Moon, Home, LogOut } from "lucide-react"
+import { Circle, Pencil, RectangleHorizontal, Sun, Moon, Home, LogOut, ArrowDownRightIcon, Eraser, ArrowBigDown, PencilLine, ArrowRightLeft, EqualApproximately } from "lucide-react"
 import { Game } from "@/draw/Game";
 import { useRouter } from "next/navigation";
 
-export type Tool = "pencil" | "rect" | "circle"
+export type Tool = "pencil" | "rect" | "circle" | "line" | "arrow" | "eraser"
 
 function IconButton({ onClick, activated, icon }: { onClick: () => void; activated: boolean; icon: ReactNode }) {
   return (
     <button
       onClick={onClick}
-      className={`p-2 rounded-md ${activated ? "bg-gray-200 dark:bg-gray-700" : ""} hover:bg-gray-100 dark:hover:bg-gray-600`}
+      className={`py-1 px-2 rounded-md ${activated ? "bg-gray-200 dark:bg-gray-700" : ""} hover:bg-gray-100 dark:hover:bg-gray-600`}
     >
       {icon}
     </button>
@@ -29,12 +29,12 @@ function Topbar({
 }) {
   const router = useRouter();
   return (
-    <div className="fixed top-10 left-10">
-      <div className="flex gap-4 p-3 border-2 border-indigo-600 rounded-md bg-gray-100 dark:bg-gray-900">
+    <div className="fixed top-9 left-10">
+      <div className="flex gap-4 p-2 border border-indigo-600 rounded-md bg-gray-100 dark:bg-gray-900">
         <IconButton
           onClick={() => setSelectedTool("pencil")}
           activated={selectedTool === "pencil"}
-          icon={<Pencil />}
+          icon={<EqualApproximately />}
         />
         <IconButton
           onClick={() => setSelectedTool("rect")}
@@ -46,12 +46,29 @@ function Topbar({
           activated={selectedTool === "circle"}
           icon={<Circle />}
         />
+        <IconButton
+          onClick={() => setSelectedTool("line")}
+          activated={selectedTool === "line"}
+          icon={<PencilLine />}
+        />
+        <IconButton
+          onClick={() => setSelectedTool("arrow")}
+          activated={selectedTool === "arrow"}
+          icon={<ArrowRightLeft />}
+        />
+        <IconButton
+          onClick={() => setSelectedTool("eraser")}
+          activated={selectedTool === "eraser"}
+          icon={<Eraser />}
+        />
         <IconButton onClick={toggleTheme} activated={false} icon={isDarkMode ? <Sun /> : <Moon />} />
       </div>
-      <div className="fixed flex gap-4 top-10 right-10 p-3 border-2 border-indigo-600 rounded-md bg-gray-100 dark:bg-gray-900 justify-end">
+
+      <div className="fixed flex gap-4 top-9 right-10 px-2 py-1 border border-indigo-600 rounded-md bg-gray-100 dark:bg-gray-900 justify-end">
         <button onClick={() => router.push('/')} className="hover:bg-gray-500 p-2 rounded"><Home/></button>
         <button onClick={() => router.push('/dashboard')} className="hover:bg-gray-500 p-2 rounded"><LogOut/></button>
       </div>
+
     </div>
   )
 }
