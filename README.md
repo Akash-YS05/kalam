@@ -7,6 +7,12 @@ Kalam is a digital whiteboard designed for brainstorming and visualizing ideas. 
 ✅ Real-time Collaboration – Multiple users can edit the board simultaneously.  </br>
 ✅ Undo/Redo & Eraser – Correct mistakes effortlessly.  </br>
 ✅ Optimized Performance – Uses Turborepo for efficient monorepo management. </br>
+</br>
+
+<img src="https://github.com/user-attachments/assets/ab000f7c-48ca-45a1-982d-7876050abbca" width="500" style="margin-right: 25px;">
+<img src="https://github.com/user-attachments/assets/cc50a3ff-2d54-4965-afc7-a4a2407167c2" width="500">
+
+</br>
 
 # 🏗️ Tech Stack
 Frontend: Next.js (React, TypeScript) </br>
@@ -14,7 +20,9 @@ Backend: Node.js (Express, WebSockets) </br>
 Realtime Communication: WebSockets </br>
 Build System: Turborepo </br>
 
+
 # Turborepo starter
+
 
 This Turborepo starter is maintained by the Turborepo core team.
 
