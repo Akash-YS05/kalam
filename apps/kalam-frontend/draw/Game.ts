@@ -264,16 +264,14 @@ export class Game {
         return Math.sqrt(dx * dx + dy * dy);
     }
 
-    eraseShapesAt(x: number, y: number): number[] {
-        const indicesToRemove: number[] = [];
-        
-        for (let i = 0; i < this.existingShape.length; i++) {
+    findShapeIndexAt(x: number, y: number): number {
+        // Search in reverse order (top-most shape first)
+        for (let i = this.existingShape.length - 1; i >= 0; i--) {
             if (this.isPointNearShape(x, y, this.existingShape[i])) {
-                indicesToRemove.push(i);
+                return i;
             }
         }
-        
-        return indicesToRemove;
+        return -1; // No shape found
     }
 
     mouseUpHandler = (e: MouseEvent) => {
@@ -355,9 +353,10 @@ export class Game {
                 points: [{ x: e.clientX, y: e.clientY }] 
             };
         } else if (this.selectedTool === "eraser") {
-            const indicesToRemove = this.eraseShapesAt(e.clientX, e.clientY);
+            const indexToRemove = this.findShapeIndexAt(e.clientX, e.clientY);
             
-            if (indicesToRemove.length > 0) {
+            if (indexToRemove !== -1) {
+                const indicesToRemove = [indexToRemove];
                 this.existingShape = this.existingShape.filter((_, index) => 
                     !indicesToRemove.includes(index));
                 
@@ -389,11 +388,12 @@ export class Game {
             this.ctx.closePath();
             
         } else if (this.selectedTool === "eraser") {
-            // Find shapes to erase at the current mouse position
-            const indicesToRemove = this.eraseShapesAt(e.clientX, e.clientY);
+            // Find a shape to erase at the current mouse position
+            const indexToRemove = this.findShapeIndexAt(e.clientX, e.clientY);
             
-            if (indicesToRemove.length > 0) {
-                // Remove the shapes
+            if (indexToRemove !== -1) {
+                const indicesToRemove = [indexToRemove];
+                // Remove the shape
                 this.existingShape = this.existingShape.filter((_, index) => 
                     !indicesToRemove.includes(index));
                 

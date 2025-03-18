@@ -1,4 +1,4 @@
-// import type { Metadata } from "next";
+import type { Metadata } from "next";
 import { Geist, Geist_Mono, Satisfy, Gotu } from "next/font/google";
 import "./globals.css";
 
@@ -21,6 +21,9 @@ const satisfy = Satisfy({
   subsets: ["latin"],
   variable: "--font-satisfy",
 });
+export const metadata: Metadata = {
+  title: "Kalam",
+};
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

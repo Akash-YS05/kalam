@@ -63,7 +63,7 @@ function Topbar({
           activated={selectedTool === "eraser"}
           icon={<Eraser />}
         />
-        <Undo onClick={() => handleUndo()} />
+        <Undo onClick={() => handleUndo()} className="p-1 hover:bg-gray-700 cursor-pointer" />
         
         <IconButton onClick={toggleTheme} activated={false} icon={isDarkMode ? <Sun /> : <Moon />} />
       </div>
