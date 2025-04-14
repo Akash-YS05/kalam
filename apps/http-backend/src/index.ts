@@ -8,6 +8,7 @@ import { prisma } from '@repo/database/client';
 import { JWT_SECRET } from '@repo/backend-common/config';
 const app = express()
 app.use(express.json())
+app.use(express.urlencoded({ extended: true}))
 app.use(cors())
 
 app.post("/signup", async(req, res) => {
@@ -64,7 +65,7 @@ app.post("/signin", async(req, res) => {
         res.json({ token })
 
     } catch(e) {
-        res.status(411).json({ message: "Something went wrong" })
+        res.status(500).json({ message: "Something went wrong" })
     } 
     
 })

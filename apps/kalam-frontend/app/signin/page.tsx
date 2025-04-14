@@ -9,12 +9,20 @@ import { HTTP_URL } from "@/config"
 export default function SignIn() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
+    setLoading(true)
+
+    if (!email || !password) {
+      setError("All fields are required.")
+      setLoading(false)
+      return
+    }
 
     try {
       const response = await axios.post(`${HTTP_URL}/signin`, { email, password })
@@ -30,6 +38,8 @@ export default function SignIn() {
     } catch (err) {
       console.error("Sign-in error:", err)
       setError("Failed to sign in. Please check your credentials.")
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -76,9 +86,12 @@ export default function SignIn() {
 
           <button
             type="submit"
-            className="w-full py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            disabled={loading}
+            className={`w-full py-2 px-4 text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
+              loading ? "opacity-50 cursor-not-allowed" : ""
+            }`}
           >
-            Sign in
+            {loading ? "Signing in..." : "Sign in"}
           </button>
         </form>
 
