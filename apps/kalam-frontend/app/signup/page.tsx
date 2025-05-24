@@ -38,11 +38,11 @@ export default function SignUp() {
       console.log("Signup successful:", response.data)
       router.push("/signin")
 
-    } catch (error) {
-          console.error(error);
-          return new NextResponse("Something went wrong", { status: 500 });
-      } finally {
-      setLoading(false)
+    } catch (error: any) {
+      console.error("Signup failed:", error.response?.data || error.message);
+      setError("Signup failed. Please try again.");
+    } finally {
+      setLoading(false);
     }
   }
 
