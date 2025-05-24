@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import axios from "axios"
 import { HTTP_URL } from "@/config"
-import { NextResponse } from "next/server"
 
 export default function SignUp() {
   const [name, setName] = useState("")
@@ -38,12 +37,14 @@ export default function SignUp() {
       console.log("Signup successful:", response.data)
       router.push("/signin")
 
-    } catch (error: any) {
-      console.error("Signup failed:", error.response?.data || error.message);
-      setError("Signup failed. Please try again.");
-    } finally {
-      setLoading(false);
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        setError(error.response?.data?.message || "Signup failed.");
+      } else {
+        setError("An unexpected error occurred.");
+      }
     }
+    
   }
 
   return (
