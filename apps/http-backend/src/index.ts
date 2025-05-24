@@ -110,8 +110,14 @@ app.post("/room",  middleware, async(req, res) => {
 
 app.get("/room", middleware, async (req, res) => {
 
+    const userId = req.userId;
+
     try {
-        const rooms = await prisma.room.findMany();
+        const rooms = await prisma.room.findMany({
+            where: {
+                adminId: userId
+            }
+        });
         res.json({ rooms });
     } catch (e) {
         console.error("Error fetching rooms:", e);
