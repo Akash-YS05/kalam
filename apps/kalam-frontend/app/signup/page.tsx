@@ -32,7 +32,11 @@ export default function SignUp() {
     }
 
     try {
-      const response = await axios.post(`${HTTP_URL}/signup`, { name, email, password })
+      const response = await axios.post(`${HTTP_URL}/signup`, { name, email, password }, {
+        headers: {
+          "Content-Type": "application/json" 
+        }
+      })
       
       console.log("Signup successful:", response.data)
       router.push("/signin")

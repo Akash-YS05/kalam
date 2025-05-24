@@ -35,7 +35,7 @@ app.post("/signup", async(req, res) => {
             userId: user.id
         })
     } catch(e) {
-        res.status(411).json({ message: "Something went wrong" })
+        res.status(500).json({ message: "Something went wrong" })
     }
     
 })
@@ -158,6 +158,6 @@ app.get("/room/:slug", async(req, res) => {
     }
 })
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3002;
 
 app.listen(PORT)
