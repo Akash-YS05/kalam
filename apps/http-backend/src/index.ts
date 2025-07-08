@@ -15,6 +15,10 @@ app.use(cors({
     allowedHeaders: ["Content-Type", "Authorization"]
 }))
 
+app.get("/", (req, res) => {
+    res.send("KALAM HTTP BACKEND")
+})
+
 app.post("/signup", async(req, res) => {
 
     const parsedData = CreateUserSchema.safeParse(req.body);
