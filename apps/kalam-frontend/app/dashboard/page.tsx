@@ -30,13 +30,13 @@ export default function Dashboard() {
       });
       setRooms(response.data.rooms || []);
     } catch (error) {
-      console.error(error);
-      return new NextResponse("Something went wrong", { status: 500 });
-  }
-   finally {
+      console.error("Error fetching rooms:", error);
+      setRooms([]);
+    } finally {
       setIsLoading(false);
     }
   }, []);
+
 
   useEffect(() => {
     fetchRooms();

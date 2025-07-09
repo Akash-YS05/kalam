@@ -6,24 +6,42 @@ import cors from 'cors';
 import {CreateUserSchema, SigninSchema, CreateRoomSchema } from '@repo/common/types';
 import { prisma } from '@repo/database/client';
 import { JWT_SECRET } from '@repo/backend-common/config';
+
 const app = express()
+
 app.use(express.json())
 app.use(express.urlencoded({ extended: true}))
+
 const allowedOrigins = ["http://localhost:3000", "https://kalamm.vercel.app"];
 
-app.use(cors({
-  origin: allowedOrigins,
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true
-}));
+const corsOptions = {
+    //@ts-ignore
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+  credentials: true,
+  optionsSuccessStatus: 200 
+};
 
+app.use(cors(corsOptions));
+
+// Handle preflight requests
+app.options("*", cors(corsOptions));
+
+// Rest of your routes...
 app.get("/", (req, res) => {
     res.send("KALAM HTTP BACKEND")
 })
 
 app.post("/signup", async(req, res) => {
-
     const parsedData = CreateUserSchema.safeParse(req.body);
     if (!parsedData.success) {
         res.json({ message: "Invalid data" })
@@ -44,11 +62,9 @@ app.post("/signup", async(req, res) => {
     } catch(e) {
         res.status(500).json({ message: "Something went wrong" })
     }
-    
 })
 
 app.post("/signin", async(req, res) => {
-
     const parsedData = SigninSchema.safeParse(req.body);
     if (!parsedData.success) {
         res.json({ message: "Invalid data" })
@@ -78,7 +94,6 @@ app.post("/signin", async(req, res) => {
     } catch(e) {
         res.status(500).json({ message: "Something went wrong" })
     } 
-    
 })
 
 app.post("/room",  middleware, async(req, res) => {
@@ -109,14 +124,11 @@ app.post("/room",  middleware, async(req, res) => {
 
     } catch(e) {
         console.log(e);
-        
         res.status(411).json({ message: "Something went wrong" })
     }
-
 })
 
 app.get("/room", middleware, async (req, res) => {
-
     const userId = req.userId;
 
     try {
@@ -148,7 +160,6 @@ app.get("/chats/:roomId", async(req, res) => {
         res.json({messages})
     } catch(e) {
         console.log(e);
-        
         res.json({ messages: [] })
     }
 })
