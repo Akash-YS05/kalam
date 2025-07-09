@@ -25,6 +25,12 @@ export default function Dashboard() {
       const token = localStorage.getItem("token");
       console.log(token);
       
+      if (!token) {
+        console.error("No token found");
+        setRooms([]);
+        return;
+      }
+      
       const response = await axios.get<{ rooms: Room[] }>(`${HTTP_URL}/room`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -36,7 +42,6 @@ export default function Dashboard() {
       setIsLoading(false);
     }
   }, []);
-
 
   useEffect(() => {
     fetchRooms();
