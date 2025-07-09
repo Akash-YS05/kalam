@@ -9,11 +9,14 @@ import { JWT_SECRET } from '@repo/backend-common/config';
 const app = express()
 app.use(express.json())
 app.use(express.urlencoded({ extended: true}))
+const allowedOrigins = ["http://localhost:3000", "https://kalamm.vercel.app"];
+
 app.use(cors({
-    origin: "*",
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"]
-}))
+  origin: allowedOrigins,
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true
+}));
 
 app.get("/", (req, res) => {
     res.send("KALAM HTTP BACKEND")
