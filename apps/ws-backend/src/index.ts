@@ -2,7 +2,8 @@ import { WebSocketServer, WebSocket } from 'ws';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import { JWT_SECRET } from '@repo/backend-common/config';
 import { prisma } from '@repo/database/client';
-const wss = new WebSocketServer({ port: 8080 });
+const PORT = parseInt(process.env.PORT || "8080", 10);
+const wss = new WebSocketServer({ port: PORT });
 
 interface User {
     ws: WebSocket
@@ -69,7 +70,7 @@ wss.on('connection', function connection(ws, request) {
                 return;
             }
 
-            user.rooms = user?.rooms.filter(x => x === parsedData.roomId);
+            user.rooms = user.rooms.filter(x => x !== parsedData.roomId);
         }
 
         if (parsedData.type === "chat") {
