@@ -29,8 +29,28 @@ function checkUser(token: string): string | null {
     } catch(e) {
         return null;
     }
-    return null;
-    
+}
+
+// Helper function to safely send messages
+function safeSend(ws: WebSocket, data: string): boolean {
+    if (ws.readyState === WebSocket.OPEN) {
+        try {
+            ws.send(data);
+            return true;
+        } catch (error) {
+            console.error('Error sending message:', error);
+            return false;
+        }
+    }
+    return false;
+}
+
+// Helper function to remove user from users array
+function removeUser(ws: WebSocket) {
+    const index = users.findIndex(user => user.ws === ws);
+    if (index !== -1) {
+        users.splice(index, 1);
+    }
 }
 
 wss.on('connection', function connection(ws, request) {
@@ -52,6 +72,18 @@ wss.on('connection', function connection(ws, request) {
         rooms: [],
         ws
     })
+
+    // Handle connection close
+    ws.on('close', function close() {
+        removeUser(ws);
+    });
+
+    // Handle connection error
+    ws.on('error', function error(err) {
+        console.error('WebSocket error:', err);
+        removeUser(ws);
+    });
+
     ws.on('message', async function message(data) {
         let parsedData;
         if (typeof data !== "string") {
@@ -86,8 +118,8 @@ wss.on('connection', function connection(ws, request) {
             })
 
             users.forEach(user => {
-                if (user.rooms.includes(roomId)) {
-                    user.ws.send(JSON.stringify({
+                if (user.rooms.includes(roomId) && user.ws.readyState === WebSocket.OPEN) {
+                    safeSend(user.ws, JSON.stringify({
                         type: "chat",
                         message,
                         roomId
