@@ -37,6 +37,14 @@ export class Game {
     private currentPencilShape: Shape | null = null;
     private undoHistory: Shape[][] = [];
     private eraserSize = 10; 
+    private safeSend(data: any) {
+        if (this.socket.readyState === WebSocket.OPEN) {
+            this.socket.send(JSON.stringify(data));
+        } else {
+            console.warn("WebSocket not open. Dropping message:", data);
+        }
+    }
+    
     socket: WebSocket;
     
     constructor(canvas: HTMLCanvasElement, roomId: string, socket: WebSocket) {
@@ -114,7 +122,7 @@ export class Game {
         this.existingShape = JSON.parse(JSON.stringify(this.undoHistory[this.undoHistory.length - 1]));
         
         // broadcasting
-        this.socket.send(JSON.stringify({
+        this.safeSend(JSON.stringify({
             type: "chat",
             message: JSON.stringify({ undo: true, shapes: this.existingShape }),
             roomId: this.roomId
@@ -280,7 +288,7 @@ export class Game {
         if (this.selectedTool === "pencil" && this.currentPencilShape) {
             this.existingShape.push(this.currentPencilShape);
             
-            this.socket.send(JSON.stringify({
+            this.safeSend(JSON.stringify({
                 type: "chat",
                 message: JSON.stringify({ shape: this.currentPencilShape }),
                 roomId: this.roomId
@@ -299,7 +307,7 @@ export class Game {
             };
             
             this.existingShape.push(shape);
-            this.socket.send(JSON.stringify({
+            this.safeSend(JSON.stringify({
                 type: "chat",
                 message: JSON.stringify({ shape }),
                 roomId: this.roomId
@@ -331,7 +339,7 @@ export class Game {
     
             if (shape) {
                 this.existingShape.push(shape);
-                this.socket.send(JSON.stringify({
+                this.safeSend(JSON.stringify({
                     type: "chat",
                     message: JSON.stringify({ shape }),
                     roomId: this.roomId
@@ -360,7 +368,7 @@ export class Game {
                 this.existingShape = this.existingShape.filter((_, index) => 
                     !indicesToRemove.includes(index));
                 
-                this.socket.send(JSON.stringify({
+                this.safeSend(JSON.stringify({
                     type: "chat",
                     message: JSON.stringify({ erased: indicesToRemove }),
                     roomId: this.roomId
@@ -398,7 +406,7 @@ export class Game {
                     !indicesToRemove.includes(index));
                 
                 // Notify other clients about the erasure
-                this.socket.send(JSON.stringify({
+                this.safeSend(JSON.stringify({
                     type: "chat",
                     message: JSON.stringify({ erased: indicesToRemove }),
                     roomId: this.roomId
