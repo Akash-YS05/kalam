@@ -16,22 +16,19 @@ const users: User[] = [];
 function checkUser(token: string): string | null {
     try {
         const decoded = jwt.verify(token, JWT_SECRET);
+        console.log("Decoded token:", decoded);
 
-        if (typeof decoded === 'string') {
-            return null;
-        }
-        
-        if (!decoded || !(decoded as JwtPayload).userId) {
-            return null;
-        }
-    
-        return decoded.userId;
+        if (typeof decoded === 'string') return null;
+        if (!(decoded as JwtPayload).userId) return null;
+
+        return (decoded as JwtPayload).userId;
     } catch(e) {
+        console.error("JWT verification error:", e);
         return null;
     }
 }
 
-// Helper function to safely send messages
+
 function safeSend(ws: WebSocket, data: string): boolean {
     if (ws.readyState === WebSocket.OPEN) {
         try {
@@ -107,15 +104,19 @@ wss.on('connection', function connection(ws, request) {
 
         if (parsedData.type === "chat") {
             const roomId = parsedData.roomId;
-            const message = parsedData.message;
+            const rawMessage = parsedData.message;
+            const message = typeof rawMessage === "string"
+            ? rawMessage
+            : JSON.stringify(rawMessage); 
 
             await prisma.chat.create({
-                data: {
-                    message,
-                    roomId: Number(roomId),
-                    userId
-                }
-            })
+            data: {
+                message,
+                roomId: Number(roomId),
+                userId
+            }
+            });
+
 
             users.forEach(user => {
                 if (user.rooms.includes(roomId) && user.ws.readyState === WebSocket.OPEN) {

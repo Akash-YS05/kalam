@@ -122,11 +122,11 @@ export class Game {
         this.existingShape = JSON.parse(JSON.stringify(this.undoHistory[this.undoHistory.length - 1]));
         
         // broadcasting
-        this.safeSend(JSON.stringify({
+        this.safeSend({
             type: "chat",
             message: { undo: true, shapes: this.existingShape },
             roomId: this.roomId
-        }));
+        });
         
         this.clearCanvas();
     }
@@ -288,11 +288,11 @@ export class Game {
         if (this.selectedTool === "pencil" && this.currentPencilShape) {
             this.existingShape.push(this.currentPencilShape);
             
-            this.safeSend(JSON.stringify({
+            this.safeSend({
                 type: "chat",
                 message: { shape: this.currentPencilShape },
                 roomId: this.roomId
-            }));
+            });
             
             this.saveToUndoHistory();
             this.currentPencilShape = null; 
@@ -307,11 +307,11 @@ export class Game {
             };
             
             this.existingShape.push(shape);
-            this.safeSend(JSON.stringify({
+            this.safeSend({
                 type: "chat",
                 message: { shape },
                 roomId: this.roomId
-            }));
+            });
             
             this.saveToUndoHistory();
         } else if (this.selectedTool === "rect" || this.selectedTool === "circle") {
@@ -339,11 +339,11 @@ export class Game {
     
             if (shape) {
                 this.existingShape.push(shape);
-                this.safeSend(JSON.stringify({
+                this.safeSend({
                     type: "chat",
                     message: { shape },
                     roomId: this.roomId
-                }));
+                });
                 
                 this.saveToUndoHistory();
             }
@@ -368,11 +368,11 @@ export class Game {
                 this.existingShape = this.existingShape.filter((_, index) => 
                     !indicesToRemove.includes(index));
                 
-                this.safeSend(JSON.stringify({
+                this.safeSend({
                     type: "chat",
                     message: { erased: indicesToRemove },
                     roomId: this.roomId
-                }));
+                });
                 
                 this.saveToUndoHistory();
                 this.clearCanvas();
@@ -406,11 +406,11 @@ export class Game {
                     !indicesToRemove.includes(index));
                 
                 // Notify other clients about the erasure
-                this.safeSend(JSON.stringify({
+                this.safeSend({
                     type: "chat",
                     message: { erased: indicesToRemove },
                     roomId: this.roomId
-                }));
+                });
                 
                 this.saveToUndoHistory();
                 this.clearCanvas();
