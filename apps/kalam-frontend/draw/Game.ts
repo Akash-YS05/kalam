@@ -124,7 +124,7 @@ export class Game {
         // broadcasting
         this.safeSend(JSON.stringify({
             type: "chat",
-            message: JSON.stringify({ undo: true, shapes: this.existingShape }),
+            message: { undo: true, shapes: this.existingShape },
             roomId: this.roomId
         }));
         
@@ -290,7 +290,7 @@ export class Game {
             
             this.safeSend(JSON.stringify({
                 type: "chat",
-                message: JSON.stringify({ shape: this.currentPencilShape }),
+                message: { shape: this.currentPencilShape },
                 roomId: this.roomId
             }));
             
@@ -309,7 +309,7 @@ export class Game {
             this.existingShape.push(shape);
             this.safeSend(JSON.stringify({
                 type: "chat",
-                message: JSON.stringify({ shape }),
+                message: { shape },
                 roomId: this.roomId
             }));
             
@@ -341,7 +341,7 @@ export class Game {
                 this.existingShape.push(shape);
                 this.safeSend(JSON.stringify({
                     type: "chat",
-                    message: JSON.stringify({ shape }),
+                    message: { shape },
                     roomId: this.roomId
                 }));
                 
@@ -370,7 +370,7 @@ export class Game {
                 
                 this.safeSend(JSON.stringify({
                     type: "chat",
-                    message: JSON.stringify({ erased: indicesToRemove }),
+                    message: { erased: indicesToRemove },
                     roomId: this.roomId
                 }));
                 
@@ -408,7 +408,7 @@ export class Game {
                 // Notify other clients about the erasure
                 this.safeSend(JSON.stringify({
                     type: "chat",
-                    message: JSON.stringify({ erased: indicesToRemove }),
+                    message: { erased: indicesToRemove },
                     roomId: this.roomId
                 }));
                 

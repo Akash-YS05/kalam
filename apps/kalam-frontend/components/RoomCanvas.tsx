@@ -15,6 +15,7 @@ export default function RoomCanvas({ roomId }: { roomId: string }) {
     }
 
     const ws = new WebSocket(`${WS_URL}?token=${token}`);
+    setSocket(ws);
 
     ws.onopen = () => {
       console.log("WebSocket connected");
@@ -22,7 +23,6 @@ export default function RoomCanvas({ roomId }: { roomId: string }) {
         type: "join_room",
         roomId
       }));
-      setSocket(ws);
     };
 
     ws.onerror = (err) => {
@@ -43,7 +43,7 @@ export default function RoomCanvas({ roomId }: { roomId: string }) {
   }, [roomId]);
 
   if (!socket) {
-    return <div className="bg-gray-800 text-xl text-center">Connecting to server...</div>;
+    return <div className="h-screen w-full bg-gray-900 text-white text-xl text-center">Connecting to server...</div>;
   }
 
   return <Canvas roomId={roomId} socket={socket} />;
