@@ -39,9 +39,17 @@ export class Game {
     private eraserSize = 10; 
     private safeSend(data: any) {
         if (this.socket.readyState === WebSocket.OPEN) {
-            this.socket.send(JSON.stringify(data));
+            try {
+                this.socket.send(JSON.stringify(data));
+                return true;
+            } catch (error) {
+                console.error("Error sending message:", error);
+                return false;
+            }
         } else {
-            console.warn("WebSocket not open. Dropping message:", data);
+            console.warn("WebSocket not open. State:", this.socket.readyState, "Data:", data);
+            
+            return false;
         }
     }
     
@@ -55,8 +63,13 @@ export class Game {
         this.socket = socket;
         this.clicked = false;
 
-        this.init();
-        this.initHandlers();
+        if (this.socket.readyState === WebSocket.OPEN) {
+            this.init();
+        } else {
+            this.socket.addEventListener('open', () => {
+                this.init();
+            });
+        }        this.initHandlers();
         this.initMouseHandlers();
     }
 
@@ -74,6 +87,13 @@ export class Game {
         this.eraserSize = size;
     }
 
+    joinRoom() {
+        this.safeSend({
+            type: "join_room",
+            roomId: this.roomId
+        });
+    }
+
     async init() {
         this.existingShape = await getExistingShapes(this.roomId);
         this.saveToUndoHistory();
@@ -81,6 +101,23 @@ export class Game {
     }
 
     initHandlers() {
+        this.socket.onopen = () => {
+            console.log("WebSocket connected, readyState:", this.socket.readyState);
+            this.joinRoom();
+        };
+    
+        this.socket.onclose = (event) => {
+            console.log("WebSocket closed:", {
+                code: event.code,
+                reason: event.reason,
+                wasClean: event.wasClean
+            });
+        };
+    
+        this.socket.onerror = (error) => {
+            console.error("WebSocket error:", error);
+        };
+        
         this.socket.onmessage = (event) => {
             const message = JSON.parse(event.data);
     

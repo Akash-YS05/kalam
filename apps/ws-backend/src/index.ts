@@ -12,14 +12,25 @@ interface User {
 }
 
 const users: User[] = [];
-
+if (!JWT_SECRET) {
+    console.error("JWT_SECRET is not defined!");
+    process.exit(1);
+}
+console.log("JWT_SECRET is defined");
 function checkUser(token: string): string | null {
     try {
+        console.log("Verifying token:", token.substring(0, 20) + "...");
         const decoded = jwt.verify(token, JWT_SECRET);
-        console.log("Decoded token:", decoded);
+        console.log("Token decoded successfully:", decoded);
 
-        if (typeof decoded === 'string') return null;
-        if (!(decoded as JwtPayload).userId) return null;
+        if (typeof decoded === 'string') {
+            console.log("Token is string, rejecting");
+            return null;
+        }
+        if (!(decoded as JwtPayload).userId) {
+            console.log("No userId in token, rejecting");
+            return null;
+        }
 
         return (decoded as JwtPayload).userId;
     } catch(e) {
@@ -51,27 +62,43 @@ function removeUser(ws: WebSocket) {
 }
 
 wss.on('connection', function connection(ws, request) {
-    const url = request.url;    //the specific url
+    console.log("New WebSocket connection attempt");
+    
+    const url = request.url;
     if (!url) {
+        console.log("No URL provided, closing connection");
+        ws.close();
         return;
     }
+    
+    console.log("Connection URL:", url);
+    
     const params = new URLSearchParams(url.split('?')[1]);
-    const token = params.get('token') || '';    //extract the token from the url
+    const token = params.get('token') || '';
+    console.log("Extracted token:", token ? "Present" : "Missing");
     
     const userId = checkUser(token);
+    console.log("User ID from token:", userId);
+    
     if (userId == null) {
+        console.log("Invalid token, closing connection");
         ws.close();
         return;
     }
 
+    console.log("User authenticated successfully:", userId);
+    
     users.push({
         userId,
         rooms: [],
         ws
-    })
+    });
+
+    console.log("Total connected users:", users.length);
 
     // Handle connection close
-    ws.on('close', function close() {
+    ws.on('close', function close(code, reason) {
+        console.log("WebSocket closed:", { code, reason: reason.toString() });
         removeUser(ws);
     });
 
