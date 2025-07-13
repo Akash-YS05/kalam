@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Satisfy, Gotu } from "next/font/google";
+import { Geist, Geist_Mono, Satisfy, Gotu, Noto_Serif_Devanagari } from "next/font/google";
 import "./globals.css";
 
 // Load fonts
@@ -21,6 +21,11 @@ const satisfy = Satisfy({
   subsets: ["latin"],
   variable: "--font-satisfy",
 });
+const devanagri = Noto_Serif_Devanagari({
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+  subsets: ["devanagari"],
+  variable: "--font-devanagari",
+});
 export const metadata: Metadata = {
   title: "Kalam",
 };
@@ -28,7 +33,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} ${satisfy.variable} ${gotu.variable}`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} ${satisfy.variable} ${gotu.variable} ${devanagri.variable}`}>
         {children}
       </body>
     </html>

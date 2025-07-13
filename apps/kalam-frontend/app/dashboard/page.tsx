@@ -107,7 +107,7 @@ export default function Dashboard() {
         {/* Title */}
         <motion.h1
         
-          className="text-5xl font-extrabold text-white text-center mb-12 font-[Gotu]"
+          className="text-5xl text-white text-center mb-12 font-devanagari"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.5 }}
@@ -122,7 +122,7 @@ export default function Dashboard() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.4, duration: 0.5 }}
         >
-          <h2 className="text-2xl font-bold text-white mb-6 font-[Gotu]">Create a New Room</h2>
+          <h2 className="text-2xl font-bold text-white mb-6 font-devanagari">Create a New Room</h2>
           <div className="flex gap-4">
             <input
               className="bg-gray-800 text-white placeholder-gray-400 border-0 p-3 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-200"
@@ -164,7 +164,7 @@ export default function Dashboard() {
               rooms.map((room) => (
                 <motion.div
                   key={room.id}
-                  className="relative p-8 rounded-md shadow-2xl overflow-hidden
+                  className="relative p-3 py-5 h-56 rounded-md shadow-2xl overflow-hidden
                              transition-all duration-300 transform hover:-translate-y-2 hover:shadow-3xl group"
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
@@ -173,7 +173,7 @@ export default function Dashboard() {
                   layout
                 >
                   <div
-                    className="absolute inset-0 bg-cover bg-center bg-no-repeat filter blur-[2px]"
+                    className="absolute inset-0 bg-cover bg-center bg-no-repeat filter blur-[0.5px]"
                     style={{
                       backgroundImage: "url('https://i.pinimg.com/736x/25/cc/1b/25cc1b47ef2eed4310736146d083f316.jpg')",
                     }}
@@ -182,10 +182,11 @@ export default function Dashboard() {
                   <div className="relative z-10">
                     <div
                       
-                      className="flex justify-between items-center mb-6"
+                      className="flex justify-between items-center"
                     >
-                      <h3 className="text-2xl font-bold text-white mb-2 font-[Gotu] ">
+                      <h3 className="text-2xl text-white mb-2 font-devanagari">
                         {room.slug}
+                        <p className="text-sm text-gray-200 mb-6">ID: {room.id}</p>
                       </h3>
                       <div className="flex space-x-2">
                         <motion.button
@@ -209,16 +210,13 @@ export default function Dashboard() {
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.9 }}
                         >
-                          <Trash2 className="h-5 w-5 text-white group-hover:text-red-300" />
+                          <Trash2 className="h-5 w-5 text-white hover:text-red-300" />
                         </motion.button>
                       </div>
                     </div>
 
-                    <p className="text-sm text-gray-200 mb-1">Slug: {room.slug}</p>
-                    <p className="text-sm text-gray-200 mb-6">ID: {room.id}</p>
-
                     <motion.button
-                      className=" pt-4 text-white items-center group-hover:text-indigo-300 transition-colors duration-300"
+                      className=" pt-14 text-white items-center hover:text-indigo-300 transition-colors duration-300"
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >
