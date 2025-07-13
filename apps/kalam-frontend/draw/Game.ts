@@ -171,7 +171,7 @@ export class Game {
     clearCanvas() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         const isDark = document.body.classList.contains('dark');
-        const bgColor = isDark ? '#0f0f0f' : '#fafafa'; // Matches Tailwind dark/light
+        const bgColor = isDark ? '#0f0f0f' : '#fafafa'; 
         this.ctx.fillStyle = bgColor;
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
