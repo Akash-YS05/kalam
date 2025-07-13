@@ -117,7 +117,7 @@ export class Game {
         this.socket.onerror = (error) => {
             console.error("WebSocket error:", error);
         };
-        
+
         this.socket.onmessage = (event) => {
             const message = JSON.parse(event.data);
     
@@ -170,11 +170,13 @@ export class Game {
 
     clearCanvas() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        this.ctx.fillStyle = "rgba(0,0,0)";
+        const isDark = document.body.classList.contains('dark');
+        const bgColor = isDark ? '#0f0f0f' : '#fafafa'; // Matches Tailwind dark/light
+        this.ctx.fillStyle = bgColor;
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
         this.existingShape.map((shape) => {
-            this.ctx.strokeStyle = "rgba(255, 255, 255)";
+            this.ctx.strokeStyle = document.body.classList.contains("dark") ? "#ffffff" : "#000000";
             
             if (shape.type === "rect") {
                 this.ctx.strokeRect(shape.x, shape.y, shape.width, shape.height);

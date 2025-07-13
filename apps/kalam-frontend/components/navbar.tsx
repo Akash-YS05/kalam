@@ -44,7 +44,7 @@ export function Navbar() {
           <Button
             variant="outline"
             size="sm"
-            className="border-gray-700 bg-transparent hover:bg-gray-900 text-metallic font-light"
+            className="border-gray-700 bg-transparent hover:bg-gray-900"
           >
             <Github className="w-4 h-4 mr-2" />
             GitHub

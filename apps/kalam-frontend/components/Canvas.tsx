@@ -5,16 +5,30 @@ import { useRouter } from "next/navigation";
 
 export type Tool = "pencil" | "rect" | "circle" | "line" | "arrow" | "eraser"
 
-function IconButton({ onClick, activated, icon }: { onClick: () => void; activated: boolean; icon: ReactNode }) {
+function IconButton({
+  onClick,
+  activated,
+  icon,
+}: {
+  onClick: () => void;
+  activated: boolean;
+  icon: React.ReactNode;
+}) {
   return (
     <button
       onClick={onClick}
-      className={`py-1 px-2 rounded-md ${activated ? "bg-gray-200 dark:bg-gray-700" : ""} hover:bg-gray-100 dark:hover:bg-gray-600`}
+      className={`py-1 px-2 rounded-md transition-colors duration-150
+        ${activated
+          ? "bg-indigo-500 text-white"
+          : "bg-zinc-200 dark:bg-zinc-800 text-black dark:text-white"
+        }
+        hover:bg-indigo-400 hover:text-white`}
     >
       {icon}
     </button>
-  )
+  );
 }
+
 
 function Topbar({
   selectedTool,
@@ -32,8 +46,8 @@ function Topbar({
   const router = useRouter();
   return (
     <div className="fixed top-9 left-10">
-      <div className="flex gap-4 p-2 border border-indigo-600 rounded-md bg-gray-100 dark:bg-gray-900">
-        <IconButton
+<div className="flex gap-4 p-2 border border-indigo-600 rounded-md bg-neutral-50 dark:bg-zinc-900">
+<IconButton
           onClick={() => setSelectedTool("pencil")}
           activated={selectedTool === "pencil"}
           icon={<EqualApproximately />}
@@ -63,15 +77,31 @@ function Topbar({
           activated={selectedTool === "eraser"}
           icon={<Eraser />}
         />
-        <Undo onClick={() => handleUndo()} className="p-1 hover:bg-gray-700 cursor-pointer" />
+        <IconButton
+          onClick={() => handleUndo()}
+          icon={<Undo />}
+          activated={false} // Undo button doesn't have an activated state
+        />
+        {/* <Undo onClick={() => handleUndo()} className="p-1 hover:bg-gray-700 cursor-pointer" /> */}
         
         <IconButton onClick={toggleTheme} activated={false} icon={isDarkMode ? <Sun /> : <Moon />} />
       </div>
 
-      <div className="fixed flex gap-4 top-9 right-10 px-2 py-1 border border-indigo-600 rounded-md bg-gray-100 dark:bg-gray-900 justify-end">
-        <button onClick={() => router.push('/')} className="hover:bg-gray-500 p-2 rounded"><Home/></button>
-        <button onClick={() => router.push('/dashboard')} className="hover:bg-gray-500 p-2 rounded"><LogOut/></button>
+      <div className="fixed flex gap-4 top-9 right-10 px-2 py-1 border border-indigo-600 rounded-md bg-neutral-50 dark:bg-zinc-900 shadow-md justify-end">
+        <button
+          onClick={() => router.push('/')}
+          className="p-2 rounded-md bg-zinc-200 dark:bg-zinc-800 text-black dark:text-white hover:bg-indigo-500 hover:text-white transition-colors"
+        >
+          <Home />
+        </button>
+        <button
+          onClick={() => router.push('/dashboard')}
+          className="p-2 rounded-md bg-zinc-200 dark:bg-zinc-800 text-black dark:text-white hover:bg-indigo-500 hover:text-white transition-colors"
+        >
+          <LogOut />
+        </button>
       </div>
+
 
     </div>
   )
@@ -79,11 +109,16 @@ function Topbar({
 
 export default function Canvas({ roomId, socket }: { roomId: string; socket: WebSocket }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const [game, setGame] = useState<Game>() // Reference to Game class
+  const [game, setGame] = useState<Game>() 
   const [selectedTool, setSelectedTool] = useState<Tool>("rect")
-  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
-    return localStorage.getItem("theme") === "dark"
-  })
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme") === "dark";
+    setIsDarkMode(savedTheme);
+    document.body.classList.toggle("dark", savedTheme);
+  }, []);
+  
 
 
   const toggleTheme = () => {
@@ -126,7 +161,14 @@ export default function Canvas({ roomId, socket }: { roomId: string; socket: Web
   return (
     <>
       <Topbar selectedTool={selectedTool} setSelectedTool={setSelectedTool} isDarkMode={isDarkMode} toggleTheme={toggleTheme} handleUndo={handleUndo} />
-      <canvas ref={canvasRef} height={window.innerHeight} width={window.innerWidth} className={`${isDarkMode ? "bg-gray-900" : "bg-white"}`}></canvas>
+        <canvas
+          ref={canvasRef}
+          height={window.innerHeight}
+          width={window.innerWidth}
+          style={{
+            backgroundColor: isDarkMode ? '#0f0f0f' : '#fafcfa', // Dark: zinc-900, Light: neutral-50
+          }}        
+        />
     </>
   )
 }

@@ -53,6 +53,10 @@ export default {
 			]
   		},
   		colors: {
+			surface: {
+				light: "#f7f7fb",   // soft white
+				dark: "#1e1e2e"     // eye-comfortable deep indigo gray
+			  },
   			border: 'hsl(var(--border))',
   			input: 'hsl(var(--input))',
   			ring: 'hsl(var(--ring))',
