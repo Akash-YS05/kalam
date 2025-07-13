@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button"
-import { ArrowRight, Github, ImageIcon, Users, Shapes, Download, Plus, UserPlus, Palette, StarIcon } from "lucide-react"
+import { ArrowRight, ImageIcon, Users, Shapes, Download, Plus, UserPlus, Palette, StarIcon } from "lucide-react"
 import { Navbar } from "./navbar"
 import { Footer } from "./footer"
 import Link from "next/link"
