@@ -1,247 +1,246 @@
-"use client";
-
-import { useEffect, useState, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Trash2, Loader2, Share2, PenTool } from "lucide-react";
-import axios from "axios";
-import { HTTP_URL } from "@/config";
-import { useRouter } from "next/navigation";
-import { NextResponse } from "next/server";
+"use client"
+import { useEffect, useState, useCallback } from "react"
+import { motion, AnimatePresence } from "framer-motion"
+import { Plus, Trash2, Loader2, Share2, PenTool } from "lucide-react"
+import axios from "axios"
+import { HTTP_URL } from "@/config"
+import { useRouter } from "next/navigation"
+import { NextResponse } from "next/server"
 
 interface Room {
-  id: number;
-  slug: string;
+  id: number
+  slug: string
 }
 
 export default function Dashboard() {
-  const [rooms, setRooms] = useState<Room[]>([]);
-  const [newRoomName, setNewRoomName] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
-  const router = useRouter();
+  const [rooms, setRooms] = useState<Room[]>([])
+  const [newRoomName, setNewRoomName] = useState("")
+  const [isLoading, setIsLoading] = useState(true)
+  const router = useRouter()
 
   const fetchRooms = useCallback(async () => {
-    setIsLoading(true);
+    setIsLoading(true)
     try {
-      const token = localStorage.getItem("token");
-      console.log(token);
-      
+      const token = localStorage.getItem("token")
+      console.log(token)
+
       if (!token) {
-        console.error("No token found");
-        setRooms([]);
-        return;
+        console.error("No token found")
+        setRooms([])
+        return
       }
-      
+
       const response = await axios.get<{ rooms: Room[] }>(`${HTTP_URL}/room`, {
         headers: { Authorization: `Bearer ${token}` },
-      });
-      setRooms(response.data.rooms || []);
+      })
+      setRooms(response.data.rooms || [])
     } catch (error) {
-      console.error("Error fetching rooms:", error);
-      setRooms([]);
+      console.error("Error fetching rooms:", error)
+      setRooms([])
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  }, []);
+  }, [])
 
   useEffect(() => {
-    fetchRooms();
-  }, [fetchRooms]);
+    fetchRooms()
+  }, [fetchRooms])
 
   const handleCreateRoom = async () => {
-    if (!newRoomName.trim()) return;
+    if (!newRoomName.trim()) return
     try {
-      const token = localStorage.getItem("token");
-      await axios.post(
-        `${HTTP_URL}/room`,
-        { name: newRoomName },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      await fetchRooms();
-      setNewRoomName("");
+      const token = localStorage.getItem("token")
+      await axios.post(`${HTTP_URL}/room`, { name: newRoomName }, { headers: { Authorization: `Bearer ${token}` } })
+      await fetchRooms()
+      setNewRoomName("")
     } catch (error) {
-      console.error(error);
-      return new NextResponse("Something went wrong", { status: 500 });
+      console.error(error)
+      return new NextResponse("Something went wrong", { status: 500 })
+    }
   }
-  };
 
   const handleDeleteRoom = async (id: number) => {
     try {
-      const token = localStorage.getItem("token");
-      //todo: delete room
+      const token = localStorage.getItem("token")
       await axios.delete(`${HTTP_URL}/room/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
-      });
-      fetchRooms();
+      })
+      fetchRooms()
     } catch (error) {
-      console.error(error);
-      return new NextResponse("Something went wrong", { status: 500 });
+      console.error(error)
+      return new NextResponse("Something went wrong", { status: 500 })
+    }
   }
-  };
 
   const handleShare = async (roomId: number) => {
-    const roomUrl = `${window.location.origin}/room/${roomId}`;
-  
-    console.log("Trying to copy:", roomUrl); // Debugging
-  
+    const roomUrl = `${window.location.origin}/room/${roomId}`
+    console.log("Trying to copy:", roomUrl)
     try {
-      await navigator.clipboard.writeText(roomUrl);
-      alert(`✅ Room URL copied: ${roomUrl}`);
+      await navigator.clipboard.writeText(roomUrl)
+      alert(`✅ Room URL copied: ${roomUrl}`)
     } catch (error) {
-      console.error(error);
-      return new NextResponse("Something went wrong", { status: 500 });
+      console.error(error)
+      return new NextResponse("Something went wrong", { status: 500 })
+    }
   }
-  };
-  
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black to-gray-900 p-8 font-display">
-     
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="max-w-5xl mx-auto space-y-8"
-      >
-       
+    <div className="min-h-screen bg-black text-white overflow-hidden relative">
+      {/* Red gradient emerging from bottom */}
+      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-gradient-radial from-violet-500/25 via-violet-500/8 to-transparent rounded-t-full blur-3xl"></div>
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[900px] h-[450px] bg-gradient-radial from-violet-400/15 via-violet-500/5 to-transparent rounded-t-full blur-2xl"></div>
+        {/* <div className="absolute -bottom-20 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-violet-500/10 rounded-t-full blur-xl"></div> */}
+      {/* Subtle grid lines */}
+      <div className="absolute bottom-0 left-0 right-0 h-[60vh] opacity-15">
+        <div className="absolute inset-0 bg-grid-pattern mask-gradient-bottom"></div>
+      </div>
 
-        {/* Title */}
-        <motion.h1
-        
-          className="text-5xl text-white text-center mb-12 font-devanagari"
-          initial={{ opacity: 0, y: -20 }}
+      <div className="relative z-10 p-8 pt-16">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.5 }}
+          transition={{ duration: 0.5 }}
+          className="max-w-6xl mx-auto space-y-12"
         >
-          Your Gallery
-        </motion.h1>
+          {/* Header */}
+          <motion.div
+            className="text-center space-y-4"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+          >
+            <h1 className="text-6xl md:text-7xl font-thin text-metallic leading-tight font-devanagari p-2">Your Gallery</h1>
+            <p className="text-xl font-light max-w-2xl mx-auto">
+              Manage your creative spaces and collaborate with your team
+            </p>
+          </motion.div>
 
-        {/* Create Room Section */}
-        <motion.div
-          className="backdrop-blur-md  p-8 rounded-md shadow-xl border border-indigo-800"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.4, duration: 0.5 }}
-        >
-          <h2 className="text-2xl font-bold text-white mb-6 font-devanagari">Create a New Room</h2>
-          <div className="flex gap-4">
-            <input
-              className="bg-gray-800 text-white placeholder-gray-400 border-0 p-3 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-200"
-              value={newRoomName}
-              onChange={(e) => setNewRoomName(e.target.value)}
-              placeholder="Enter room name"
-            />
-            <motion.button
-              onClick={handleCreateRoom}
-              className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition duration-200 shadow-md"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <Plus className="h-6 w-6" />
-            </motion.button>
-          </div>
-        </motion.div>
-
-        {/* Room List */}
-        <motion.div
-          className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.6, duration: 0.5 }}
-        >
-         
-          <AnimatePresence>
-            {isLoading ? (
-              <motion.div
-                className="col-span-full flex justify-center items-center"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-              >
-          
-                <Loader2 className="h-8 w-8 text-indigo-500 animate-spin" />
-              </motion.div>
-            ) : rooms.length > 0 ? (
-              rooms.map((room) => (
-                <motion.div
-                  key={room.id}
-                  className="relative p-3 py-5 h-56 rounded-md shadow-2xl overflow-hidden
-                             transition-all duration-300 transform hover:-translate-y-2 hover:shadow-3xl group"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ duration: 0.3 }}
-                  layout
+          {/* Create Room Section */}
+          <motion.div
+            className="max-w-2xl mx-auto"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.4, duration: 0.5 }}
+          >
+            <div className="bg-gray-900/30 backdrop-blur-sm border border-gray-800 rounded-2xl p-8">
+              <h2 className="text-2xl font-thin text-metallic mb-6">Create New Canvas</h2>
+              <div className="flex gap-4">
+                <input
+                  className="flex-1 bg-gray-800/50 text-metallic placeholder-gray-500 border border-gray-700 rounded-xl px-4 py-3 font-light focus:outline-none focus:ring-1 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all duration-200"
+                  value={newRoomName}
+                  onChange={(e) => setNewRoomName(e.target.value)}
+                  placeholder="Enter canvas name"
+                  onKeyPress={(e) => e.key === "Enter" && handleCreateRoom()}
+                />
+                <motion.button
+                  onClick={handleCreateRoom}
+                  className="bg-violet-800 hover:bg-violet-600 text-white px-6 py-3 rounded-xl font-light transition-all duration-200 flex items-center justify-center"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  disabled={!newRoomName.trim()}
                 >
-                  <div
-                    className="absolute inset-0 bg-cover bg-center bg-no-repeat filter blur-[0.5px]"
-                    style={{
-                      backgroundImage: "url('https://i.pinimg.com/736x/25/cc/1b/25cc1b47ef2eed4310736146d083f316.jpg')",
-                    }}
-                  ></div>
-                  {/* <div className="absolute inset-0 bg-black bg-opacity-40 backdrop-blur-sm transition-opacity duration-300 group-hover:bg-opacity-30"></div> */}
-                  <div className="relative z-10">
-                    <div
-                      
-                      className="flex justify-between items-center"
+                  <Plus className="h-5 w-5" />
+                </motion.button>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Room Grid */}
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6, duration: 0.5 }}>
+            <AnimatePresence>
+              {isLoading ? (
+                <motion.div
+                  className="flex justify-center items-center py-20"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  <Loader2 className="h-8 w-8 text-violet-800 animate-spin" />
+                </motion.div>
+              ) : rooms.length > 0 ? (
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {rooms.map((room, index) => (
+                    <motion.div
+                      key={room.id}
+                      className="group relative bg-gray-900/20 backdrop-blur-sm border border-gray-800 rounded-2xl p-6 hover:border-gray-700 transition-all duration-300"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      transition={{ duration: 0.3, delay: index * 0.1 }}
+                      whileHover={{ y: -5 }}
+                      layout
                     >
-                      <h3 className="text-2xl text-white mb-2 font-devanagari">
-                        {room.slug}
-                        <p className="text-sm text-gray-200 mb-6">ID: {room.id}</p>
-                      </h3>
-                      <div className="flex space-x-2">
+                      {/* Canvas preview area */}
+                      <div className="inset-0 bg-cover bg-center bg-no-repeat filter h-32  rounded-xl mb-4 border border-gray-700/50 flex items-center justify-center"
+                      style={{
+                        backgroundImage: "url('https://i.pinimg.com/736x/25/cc/1b/25cc1b47ef2eed4310736146d083f316.jpg')"}}>
+                      </div>
+
+                      {/* Room info */}
+                      <div className="space-y-3">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <h3 className="text-xl font-thin truncate">{room.slug}</h3>
+                            <p className="text-sm text-metallic-subtle font-light">Canvas #{room.id}</p>
+                          </div>
+
+                          {/* Action buttons */}
+                          <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                            <motion.button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleShare(room.id)
+                              }}
+                              className="p-2 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 border border-gray-700 transition-colors duration-200"
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.9 }}
+                              aria-label="Share Canvas"
+                            >
+                              <Share2 className="w-4 h-4 text-metallic-subtle" />
+                            </motion.button>
+                            <motion.button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleDeleteRoom(room.id)
+                              }}
+                              className="p-2 rounded-lg bg-gray-800/50 hover:bg-violet-500/20 border border-gray-700 hover:border-violet-500/30 transition-colors duration-200"
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.9 }}
+                            >
+                              <Trash2 className="h-4 w-4 text-metallic-subtle hover:text-violet-400" />
+                            </motion.button>
+                          </div>
+                        </div>
+
+                        {/* Enter canvas button */}
                         <motion.button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            handleShare(room.id)
-                          }}
-                          className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors duration-300"
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                          aria-label="Share Room"
+                          onClick={() => router.push(`/canvas/${room.id}`)}
+                          className="w-full bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/30 hover:border-violet-500/50 text-violet-400 hover:text-violet-300 py-3 rounded-xl font-light transition-all duration-200 flex items-center justify-center gap-2"
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
                         >
-                          <Share2 className="w-5 h-5 text-white " />
-                        </motion.button>
-                        <motion.button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            handleDeleteRoom(room.id)
-                          }}
-                          className="p-2 rounded-lg bg-white/10 transition-colors duration-300"
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                        >
-                          <Trash2 className="h-5 w-5 text-white hover:text-red-300" />
+                          <PenTool className="h-4 w-4" />
+                          Enter Canvas
                         </motion.button>
                       </div>
-                    </div>
-
-                    <motion.button
-                      className=" pt-14 text-white items-center hover:text-indigo-300 transition-colors duration-300"
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      <button className="flex gap-2 items-center" onClick={() => router.push(`/canvas/${room.id}`)}>
-                      <PenTool className="h-5 w-5" />
-                      Enter Canvas
-                      </button>
-                      
-                    </motion.button>
-                  </div>
+                    </motion.div>
+                  ))}
+                </div>
+              ) : (
+                <motion.div
+                  className="text-center py-20"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.8, duration: 0.5 }}
+                >
+                  <PenTool className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                  <p className="text-xl text-metallic-subtle font-light">No canvases yet. Create your first one!</p>
                 </motion.div>
-              ))
-            ) : (
-              <motion.p
-                className="text-gray-400 col-span-full text-center text-xl"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.8, duration: 0.5 }}
-              >
-                No rooms available. Create your first room!
-              </motion.p>
-            )}
-          </AnimatePresence>
+              )}
+            </AnimatePresence>
+          </motion.div>
         </motion.div>
-      </motion.div>
+      </div>
     </div>
-  );
+  )
 }
