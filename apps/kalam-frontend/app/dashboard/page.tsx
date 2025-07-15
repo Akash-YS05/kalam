@@ -86,10 +86,8 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-black text-white overflow-hidden relative">
-      {/* Red gradient emerging from bottom */}
       <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-gradient-radial from-violet-500/25 via-violet-500/8 to-transparent rounded-t-full blur-3xl"></div>
         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[900px] h-[450px] bg-gradient-radial from-violet-400/15 via-violet-500/5 to-transparent rounded-t-full blur-2xl"></div>
-        {/* <div className="absolute -bottom-20 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-violet-500/10 rounded-t-full blur-xl"></div> */}
       {/* Subtle grid lines */}
       <div className="absolute bottom-0 left-0 right-0 h-[60vh] opacity-15">
         <div className="absolute inset-0 bg-grid-pattern mask-gradient-bottom"></div>
@@ -234,7 +232,7 @@ export default function Dashboard() {
                   transition={{ delay: 0.8, duration: 0.5 }}
                 >
                   <PenTool className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-                  <p className="text-xl text-metallic-subtle font-light">No canvases yet. Create your first one!</p>
+                  <p className="text-xl font-light">No canvases yet. Create your first one!</p>
                 </motion.div>
               )}
             </AnimatePresence>

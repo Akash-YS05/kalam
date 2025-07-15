@@ -11,13 +11,13 @@ export function Footer() {
           </div>
 
           <div className="flex items-center space-x-6">
-            <a href="#" className="text-metallic-subtle hover:text-metallic transition-colors">
+            <a href="https://x.com/akashpandeytwt" className="text-metallic-subtle hover:text-metallic transition-colors">
               <Twitter className="w-5 h-5" />
             </a>
-            <a href="#" className="text-metallic-subtle hover:text-metallic transition-colors">
+            <a href="https://github.com/Akash-YS05" className="text-metallic-subtle hover:text-metallic transition-colors">
               <Github className="w-5 h-5" />
             </a>
-            <a href="#" className="text-metallic-subtle hover:text-metallic transition-colors">
+            <a href="https://linkedin.com/in/li-akash-pandey" className="text-metallic-subtle hover:text-metallic transition-colors">
               <Linkedin className="w-5 h-5" />
             </a>
           </div>

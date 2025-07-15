@@ -68,7 +68,7 @@ export default function Component() {
             {/* Feature 1 */}
             <div className="relative flex flex-col items-center text-center md:flex-row md:items-center md:justify-between max-w-5xl mx-auto">
               {/* Background icon for small screens */}
-              <div className="absolute inset-0 flex items-center justify-center opacity-10 md:hidden">
+              <div className="absolute inset-0 flex items-center justify-center opacity-25 md:hidden">
                 <Users className="w-32 h-32 text-violet-500/30" />
               </div>
               {/* Text content */}
@@ -91,14 +91,13 @@ export default function Component() {
             {/* Feature 2 */}
             <div className="relative flex flex-col items-center text-center md:flex-row-reverse md:items-center md:justify-between max-w-5xl mx-auto">
               {/* Background icon for small screens */}
-              <div className="absolute inset-0 flex items-center justify-center opacity-10 md:hidden">
+              <div className="absolute inset-0 flex items-center justify-center opacity-25 md:hidden">
                 <Shapes className="w-32 h-32 text-violet-500/30" />
               </div>
               {/* Text content */}
               <div className="relative z-10 flex-1 p-4 md:pl-16 md:p-0 md:text-left">
                 <div className="flex items-center justify-center md:justify-start mb-6">
                   <Shapes className="w-8 h-8 text-violet-800 mr-4 md:hidden" />{" "}
-                  {/* Small icon for text on small screens */}
                   <h3 className="text-2xl md:text-3xl font-thin">Smart Shapes</h3>
                 </div>
                 <p className="text-base md:text-lg text-metallic-subtle font-light leading-relaxed">
@@ -106,22 +105,18 @@ export default function Component() {
                   intelligent shape recognition and auto-alignment.
                 </p>
               </div>
-              {/* Original icon block for larger screens */}
               <div className="hidden md:flex w-64 h-40 bg-gradient-to-br from-violet-500/10 to-transparent rounded-3xl border border-gray-800 items-center justify-center">
                 <Shapes className="w-16 h-16 text-violet-500/30" />
               </div>
             </div>
             {/* Feature 3 */}
             <div className="relative flex flex-col items-center text-center md:flex-row md:items-center md:justify-between max-w-5xl mx-auto">
-              {/* Background icon for small screens */}
-              <div className="absolute inset-0 flex items-center justify-center opacity-10 md:hidden">
+              <div className="absolute inset-0 flex items-center justify-center opacity-25 md:hidden">
                 <Download className="w-32 h-32 text-violet-500/30" />
               </div>
-              {/* Text content */}
               <div className="relative z-10 flex-1 p-4 md:pr-16 md:p-0 md:text-left">
                 <div className="flex items-center justify-center md:justify-start mb-6">
                   <Download className="w-8 h-8 text-violet-800 mr-4 md:hidden" />{" "}
-                  {/* Small icon for text on small screens */}
                   <h3 className="text-2xl md:text-3xl font-thin">Beautiful Exports</h3>
                 </div>
                 <p className="text-base md:text-lg text-metallic-subtle font-light leading-relaxed">
@@ -129,7 +124,6 @@ export default function Component() {
                   or any format you need. (Coming soon)
                 </p>
               </div>
-              {/* Original icon block for larger screens */}
               <div className="hidden md:flex w-64 h-40 bg-gradient-to-br from-violet-500/10 to-transparent rounded-3xl border border-gray-800 items-center justify-center">
                 <Download className="w-16 h-16 text-violet-500/30" />
               </div>
@@ -146,19 +140,14 @@ export default function Component() {
               Get started with Kalam in just a few simple steps.
             </p>
           </div>
-          {/* Steps */}
           <div className="space-y-20">
-            {/* Step 1 */}
             <div className="relative flex flex-col items-center text-center md:flex-row md:items-center md:text-left max-w-4xl mx-auto">
-              {/* Background icon for small screens */}
-              <div className="absolute inset-0 flex items-center justify-center opacity-10 md:hidden">
-                <Plus className="w-32 h-32 text-violet-800" />
+              <div className="absolute inset-0 flex items-center justify-center opacity-25 md:hidden">
+                <Plus className="w-40 h-40 text-violet-800" />
               </div>
-              {/* Original circular icon for larger screens */}
               <div className="hidden md:flex w-16 h-16 rounded-full bg-violet-500/20 border border-violet-500/30 items-center justify-center mr-8 flex-shrink-0">
                 <Plus className="w-8 h-8 text-violet-800" />
               </div>
-              {/* Text content */}
               <div className="relative z-10 p-4 md:p-0">
                 <h3 className="text-xl md:text-2xl font-thin text-metallic mb-3">Create a Board</h3>
                 <p className="text-base md:text-lg text-metallic-subtle font-light leading-relaxed">
@@ -167,17 +156,13 @@ export default function Component() {
                 </p>
               </div>
             </div>
-            {/* Step 2 */}
             <div className="relative flex flex-col items-center text-center md:flex-row md:items-center md:text-left max-w-4xl mx-auto">
-              {/* Background icon for small screens */}
-              <div className="absolute inset-0 flex items-center justify-center opacity-10 md:hidden">
-                <UserPlus className="w-32 h-32 text-violet-800" />
+              <div className="absolute inset-0 flex items-center justify-center opacity-25 md:hidden">
+                <UserPlus className="w-40 h-40 text-violet-800" />
               </div>
-              {/* Original circular icon for larger screens */}
               <div className="hidden md:flex w-16 h-16 rounded-full bg-violet-500/20 border border-violet-500/30 items-center justify-center mr-8 flex-shrink-0">
                 <UserPlus className="w-8 h-8 text-violet-800" />
               </div>
-              {/* Text content */}
               <div className="relative z-10 p-4 md:p-0">
                 <h3 className="text-xl md:text-2xl font-thin mb-3">Invite Your Team</h3>
                 <p className="text-base md:text-lg text-metallic-subtle font-light leading-relaxed">
@@ -186,17 +171,13 @@ export default function Component() {
                 </p>
               </div>
             </div>
-            {/* Step 3 */}
             <div className="relative flex flex-col items-center text-center md:flex-row md:items-center md:text-left max-w-4xl mx-auto">
-              {/* Background icon for small screens */}
-              <div className="absolute inset-0 flex items-center justify-center opacity-10 md:hidden">
-                <Palette className="w-32 h-32 text-violet-500" />
+              <div className="absolute inset-0 flex items-center justify-center opacity-25 md:hidden">
+                <Palette className="w-40 h-40 text-violet-500" />
               </div>
-              {/* Original circular icon for larger screens */}
               <div className="hidden md:flex w-16 h-16 rounded-full bg-violet-500/20 border border-violet-500/30 items-center justify-center mr-8 flex-shrink-0">
                 <Palette className="w-8 h-8 text-violet-500" />
               </div>
-              {/* Text content */}
               <div className="relative z-10 p-4 md:p-0">
                 <h3 className="text-xl md:text-2xl font-thin mb-3">Start Creating</h3>
                 <p className="text-base md:text-lg text-metallic-subtle font-light leading-relaxed">
@@ -209,8 +190,7 @@ export default function Component() {
         </div>
       </div>
       <Footer />
-      {/* Bottom spacing for gradient */}
-      {/* <div className="h-32"></div> */}
+      
     </div>
   )
 }
