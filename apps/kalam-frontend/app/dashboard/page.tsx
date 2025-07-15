@@ -120,19 +120,19 @@ export default function Dashboard() {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.4, duration: 0.5 }}
           >
-            <div className="bg-gray-900/30 backdrop-blur-sm border border-gray-800 rounded-2xl p-8">
+            <div className="bg-gray-900/30 backdrop-blur-sm border border-gray-800 rounded-2xl p-6 sm:p-8">
               <h2 className="text-2xl font-thin text-metallic mb-6">Create New Canvas</h2>
-              <div className="flex gap-4">
+              <div className="flex flex-col sm:flex-row gap-4">
                 <input
-                  className="flex-1 bg-gray-800/50 text-metallic placeholder-gray-500 border border-gray-700 rounded-xl px-4 py-3 font-light focus:outline-none focus:ring-1 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all duration-200"
+                  className="w-full bg-gray-800/50 text-metallic placeholder-gray-500 border border-gray-700 rounded-xl px-4 py-3 font-light focus:outline-none focus:ring-1 focus:ring-violet-500/50 focus:border-violet-500/50 transition-all duration-200"
                   value={newRoomName}
                   onChange={(e) => setNewRoomName(e.target.value)}
                   placeholder="Enter canvas name"
-                  onKeyPress={(e) => e.key === "Enter" && handleCreateRoom()}
+                  onKeyPress={(e) => e.key === 'Enter' && handleCreateRoom()}
                 />
                 <motion.button
                   onClick={handleCreateRoom}
-                  className="bg-violet-800 hover:bg-violet-600 text-white px-6 py-3 rounded-xl font-light transition-all duration-200 flex items-center justify-center"
+                  className="bg-violet-800 hover:bg-violet-600 text-white px-6 py-3 rounded-xl font-light transition-all duration-200 flex items-center justify-center disabled:opacity-50"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   disabled={!newRoomName.trim()}
@@ -141,6 +141,7 @@ export default function Dashboard() {
                 </motion.button>
               </div>
             </div>
+
           </motion.div>
 
           {/* Room Grid */}
