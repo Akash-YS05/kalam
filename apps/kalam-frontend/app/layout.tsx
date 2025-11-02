@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Satisfy, Gotu, Noto_Serif_Devanagari } from "next/font/google";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next"
 
 // Load fonts
 const geistSans = Geist({
@@ -27,8 +28,8 @@ const devanagri = Noto_Serif_Devanagari({
   variable: "--font-devanagari",
 });
 
-export const metadata = {
-  title: "Kalam – Digital Whiteboard for Brainstorming & Collaboration",
+export const metadata: Metadata = {
+  title: "Kalam: Digital Whiteboard for Brainstorming & Collaboration",
   description:
     "Kalam is a fast, interactive digital whiteboard designed for seamless brainstorming, diagramming, and real-time collaboration. Enhance productivity and creativity with an intuitive canvas.",
   keywords: [
@@ -45,7 +46,7 @@ export const metadata = {
   authors: [{ name: "Akash", url: "https://akassh.tech" }],
   creator: "Akash Pandey",
   openGraph: {
-    title: "Kalam – Brainstorm, Diagram, and Collaborate in Real-Time",
+    title: "Kalam: Brainstorm, Diagram, and Collaborate in Real-Time",
     description:
       "Experience a seamless and interactive digital whiteboard with Kalam. Perfect for teams looking to brainstorm, diagram, and collaborate efficiently.",
     url: "https://kalamm.vercel.app",
@@ -55,14 +56,14 @@ export const metadata = {
         url: "https://res.cloudinary.com/ddkt00y0i/image/upload/v1752856969/gradii-1920x1080_10_flremb.png", 
         width: 1200,
         height: 630,
-        alt: "Kalam – Digital Whiteboard",
+        alt: "Kalam: Digital Whiteboard",
       },
     ],
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Kalam – Digital Whiteboard for Collaboration",
+    title: "Kalam: Digital Whiteboard for Collaboration",
     description:
       "Kalam is a real-time digital whiteboard for brainstorming, diagramming, and team collaboration.",
     images: ["https://res.cloudinary.com/ddkt00y0i/image/upload/v1752856969/gradii-1920x1080_10_flremb.png"],
@@ -76,6 +77,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} ${satisfy.variable} ${gotu.variable} ${devanagri.variable}`}>
         {children}
+        <Analytics/>
       </body>
     </html>
   );
