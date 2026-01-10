@@ -184,4 +184,6 @@ app.get("/room/:slug", async(req, res) => {
 
 const PORT = process.env.PORT || 3002;
 
-app.listen(PORT)
+app.listen(PORT, () => {
+    console.log(`HTTP Backend is running on port ${PORT}`);
+});

@@ -1,7 +1,8 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, ImageIcon, Users, Shapes, Download, Plus, UserPlus, Palette, StarIcon } from "lucide-react"
+import { ArrowRight, ImageIcon, Users, Shapes, Download, Plus, UserPlus, Palette, StarIcon, LogIn, LogOut } from "lucide-react"
 import { Navbar } from "./navbar"
 import { Footer } from "./footer"
 import Link from "next/link"
@@ -9,6 +10,17 @@ import { useRouter } from "next/navigation"
 
 export default function Component() {
   const router = useRouter()
+  const handleAuth = () => {
+    const token = localStorage.getItem("token")
+    if (token) {
+      router.push("/dashboard")
+    } else {
+      router.push("/signin")
+    }
+  }
+  
+  
+
   return (
     <div className="bg-black text-white overflow-hidden">
       <Navbar />
@@ -32,15 +44,15 @@ export default function Component() {
               teams and individuals.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Button
-                onClick={() => router.push("/dashboard")}
-                size="lg"
-                className="bg-violet-900 hover:bg-violet-600 text-white px-10 py-4 rounded-full text-lg font-light transition-all duration-200"
-              >
-                <ImageIcon className="w-5 h-5 mr-2" />
-                View Gallery
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
+            <Button
+              onClick={handleAuth}
+              size="lg"
+              className="bg-violet-900 hover:bg-violet-600 text-white px-10 py-4 rounded-full text-lg font-light transition-all duration-200"
+            >
+              <ImageIcon className="w-5 h-5 mr-2" />
+              Try Kalam
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </Button>
               <Link href="https://github.com/Akash-YS05/kalam">
                 <Button
                   variant="outline"
