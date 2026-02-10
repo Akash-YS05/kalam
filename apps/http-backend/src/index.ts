@@ -130,37 +130,93 @@ app.post("/room",  middleware, async(req, res) => {
 
 app.get("/room", middleware, async (req, res) => {
     const userId = req.userId;
+    const page = Math.max(1, parseInt(req.query.page as string) || 1);
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit as string) || 20));
+    const skip = (page - 1) * limit;
 
     try {
-        const rooms = await prisma.room.findMany({
-            where: {
-                adminId: userId
+        const [rooms, total] = await Promise.all([
+            prisma.room.findMany({
+                where: { adminId: userId },
+                orderBy: { createdAt: 'desc' },
+                take: limit,
+                skip: skip
+            }),
+            prisma.room.count({ where: { adminId: userId } })
+        ]);
+
+        res.json({
+            rooms,
+            pagination: {
+                page,
+                limit,
+                total,
+                pages: Math.ceil(total / limit)
             }
         });
-        res.json({ rooms });
     } catch (e) {
         console.error("Error fetching rooms:", e);
         res.status(500).json({ message: "Something went wrong" });
     }
 })
 
-app.get("/chats/:roomId", async(req, res) => {
+app.delete("/room/:id", middleware, async (req, res) => {
+    const userId = req.userId;
+    const roomId = Number(req.params.id);
+
+    if (isNaN(roomId)) {
+        res.status(400).json({ message: "Invalid room ID" });
+        return;
+    }
+
+    try {
+        // Verify ownership
+        const room = await prisma.room.findFirst({
+            where: { id: roomId, adminId: userId }
+        });
+
+        if (!room) {
+            res.status(404).json({ message: "Room not found or not authorized" });
+            return;
+        }
+
+        // Delete chats first, then room
+        await prisma.chat.deleteMany({ where: { roomId } });
+        await prisma.room.delete({ where: { id: roomId } });
+
+        res.json({ message: "Room deleted successfully" });
+    } catch (e) {
+        console.error("Error deleting room:", e);
+        res.status(500).json({ message: "Something went wrong" });
+    }
+})
+
+app.get("/chats/:roomId", middleware, async (req, res) => {
     try {
         const roomId = Number(req.params.roomId);
-        const messages = await prisma.chat.findMany({
-            where: {
-                roomId: roomId
-            },
-            orderBy: {
-                id: "desc"
-            },
-            take: 1000
-        })
+        
+        if (isNaN(roomId)) {
+            res.status(400).json({ message: "Invalid room ID" });
+            return;
+        }
 
-        res.json({messages})
-    } catch(e) {
-        console.log(e);
-        res.json({ messages: [] })
+        const cursor = req.query.cursor ? Number(req.query.cursor) : undefined;
+        const limit = Math.min(500, Math.max(1, parseInt(req.query.limit as string) || 200));
+
+        const messages = await prisma.chat.findMany({
+            where: { roomId },
+            orderBy: { id: 'asc' },
+            take: limit,
+            ...(cursor && { skip: 1, cursor: { id: cursor } })
+        });
+
+        res.json({
+            messages,
+            nextCursor: messages.length === limit ? messages[messages.length - 1]?.id : null
+        });
+    } catch (e) {
+        console.error("Error fetching chats:", e);
+        res.status(500).json({ messages: [], nextCursor: null });
     }
 })
 
