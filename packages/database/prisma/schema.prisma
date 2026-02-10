@@ -24,20 +24,24 @@ model User {
 }
 
 model Room {
-  id Int @id @default(autoincrement())
-  slug String @unique 
+  id        Int      @id @default(autoincrement())
+  slug      String   @unique
   createdAt DateTime @default(now())
-  adminId String
-  admin User @relation(fields: [adminId], references: [id])
-  chats Chat[]
+  adminId   String
+  admin     User     @relation(fields: [adminId], references: [id])
+  chats     Chat[]
+
+  @@index([adminId]) // Index for faster dashboard queries
 }
 
 model Chat {
-  id Int @id @default(autoincrement())
-  roomId Int
-  message String
+  id        Int      @id @default(autoincrement())
+  roomId    Int
+  message   String
   createdAt DateTime @default(now())
-  userId String
-  room Room @relation(fields: [roomId], references: [id])
-  user User @relation(fields: [userId], references: [id])
+  userId    String
+  room      Room     @relation(fields: [roomId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([roomId]) // Index for faster shape loading
 }
