@@ -4,6 +4,8 @@ import { WS_URL } from "@/config";
 import { useEffect, useState, useRef, useCallback } from "react";
 import Canvas from "./Canvas";
 import { getExistingShapes, Shape } from "@/draw/http";
+import { useBackendToken } from "@/hooks/useBackendToken";
+import { useRouter } from "next/navigation";
 
 const CONNECTION_TIMEOUT = 10000; // 10 seconds
 const MAX_RECONNECT_ATTEMPTS = 5;
@@ -16,14 +18,13 @@ export default function RoomCanvas({ roomId }: { roomId: string }) {
   const reconnectAttempts = useRef(0);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
+  const router = useRouter();
 
-  // Prefetch shapes immediately (parallel with WebSocket connection)
+  const { token, isLoading: isTokenLoading, error: tokenError } = useBackendToken();
+
+  // Prefetch shapes immediately when token is available
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      setError("No authentication token");
-      return;
-    }
+    if (!token) return;
 
     // Start fetching shapes immediately - don't wait for WebSocket
     getExistingShapes(roomId)
@@ -34,12 +35,10 @@ export default function RoomCanvas({ roomId }: { roomId: string }) {
         console.error("Failed to prefetch shapes:", err);
         setInitialShapes([]); // Empty array as fallback
       });
-  }, [roomId]);
+  }, [roomId, token]);
 
   const connect = useCallback(() => {
-    const token = localStorage.getItem("token");
     if (!token) {
-      setError("No authentication token");
       return;
     }
 
@@ -101,10 +100,13 @@ export default function RoomCanvas({ roomId }: { roomId: string }) {
         setError("Connection lost. Please refresh the page.");
       }
     };
-  }, [roomId]);
+  }, [roomId, token]);
 
+  // Connect when token is ready
   useEffect(() => {
-    connect();
+    if (token) {
+      connect();
+    }
 
     return () => {
       if (timeoutRef.current) {
@@ -117,13 +119,30 @@ export default function RoomCanvas({ roomId }: { roomId: string }) {
         wsRef.current.close(1000, "Component unmounted");
       }
     };
-  }, [connect, roomId]);
+  }, [connect, roomId, token]);
 
   const handleRetry = () => {
     setError(null);
     reconnectAttempts.current = 0;
     connect();
   };
+
+  // Redirect to signin if token error (not authenticated)
+  if (tokenError) {
+    return (
+      <div className="h-screen w-full flex items-center justify-center bg-gray-900 text-white">
+        <div className="text-center space-y-4">
+          <p className="text-red-400">Authentication required</p>
+          <button
+            onClick={() => router.push("/signin")}
+            className="px-4 py-2 bg-violet-600 hover:bg-violet-700 rounded-lg transition-colors"
+          >
+            Sign In
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (error) {
     return (
@@ -141,8 +160,8 @@ export default function RoomCanvas({ roomId }: { roomId: string }) {
     );
   }
 
-  // Wait for both WebSocket connection AND initial shapes to be loaded
-  if (!isConnected || initialShapes === null) {
+  // Wait for token, WebSocket connection, AND initial shapes to be loaded
+  if (isTokenLoading || !isConnected || initialShapes === null) {
     return (
       <div className="h-screen w-full flex items-center justify-center bg-gray-900 text-white">
         <div className="flex flex-col items-center gap-3">
@@ -167,7 +186,11 @@ export default function RoomCanvas({ roomId }: { roomId: string }) {
             ></path>
           </svg>
           <p className="text-lg font-light text-gray-300">
-            {!isConnected ? "Connecting to canvas..." : "Loading shapes..."}
+            {isTokenLoading 
+              ? "Authenticating..." 
+              : !isConnected 
+                ? "Connecting to canvas..." 
+                : "Loading shapes..."}
           </p>
         </div>
       </div>

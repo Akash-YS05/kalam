@@ -4,7 +4,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import cors from 'cors';
 import {CreateUserSchema, SigninSchema, CreateRoomSchema } from '@repo/common/types';
-import { prisma } from '@repo/database/client';
+import { prisma, Prisma } from '@repo/database/client';
 import { JWT_SECRET } from '@repo/backend-common/config';
 
 const app = express()
@@ -44,10 +44,23 @@ app.get("/", (req, res) => {
 app.post("/signup", async(req, res) => {
     const parsedData = CreateUserSchema.safeParse(req.body);
     if (!parsedData.success) {
-        res.json({ message: "Invalid data" })
+        res.status(400).json({ 
+            message: "Invalid data",
+            errors: parsedData.error.errors.map(e => e.message)
+        });
         return;
     } 
     try {
+        // Check if user already exists
+        const existingUser = await prisma.user.findUnique({
+            where: { email: parsedData.data.email }
+        });
+
+        if (existingUser) {
+            res.status(409).json({ message: "An account with this email already exists" });
+            return;
+        }
+
         const hashedPassword = await bcrypt.hash(parsedData.data.password, 10);
         const user = await prisma.user.create({
             data: {
@@ -55,19 +68,34 @@ app.post("/signup", async(req, res) => {
                 password: hashedPassword,
                 name: parsedData.data.name
             }
-        })
-        res.json({
-            userId: user.id
-        })
+        });
+
+        res.status(201).json({
+            userId: user.id,
+            message: "Account created successfully"
+        });
     } catch(e) {
-        res.status(500).json({ message: "Something went wrong" })
+        console.error("Signup error:", e);
+        
+        // Handle Prisma unique constraint error (backup check)
+        if (e instanceof Prisma.PrismaClientKnownRequestError) {
+            if (e.code === 'P2002') {
+                res.status(409).json({ message: "An account with this email already exists" });
+                return;
+            }
+        }
+        
+        res.status(500).json({ message: "Something went wrong during signup" });
     }
 })
 
 app.post("/signin", async(req, res) => {
     const parsedData = SigninSchema.safeParse(req.body);
     if (!parsedData.success) {
-        res.json({ message: "Invalid data" })
+        res.status(400).json({ 
+            message: "Invalid data",
+            errors: parsedData.error.errors.map(e => e.message)
+        });
         return;
     }
     try {
@@ -75,24 +103,41 @@ app.post("/signin", async(req, res) => {
             where: {
                 email: parsedData.data.email
             }
-        })
+        });
+
         if (!user) {
-            res.json({ message: "Invalid credentials" })
+            res.status(401).json({ message: "Invalid email or password" });
             return;
         }
+
+        // Check if user signed up via OAuth (no password)
+        if (!user.password) {
+            res.status(401).json({ message: "Please sign in with Google" });
+            return;
+        }
+
         const isValid = await bcrypt.compare(parsedData.data.password, user.password);
         if (!isValid) {
-            res.json({ message: "Invalid credentials" })
+            res.status(401).json({ message: "Invalid email or password" });
             return;
         }
-        const token = jwt.sign({
-            userId: user?.id
-        }, JWT_SECRET)
 
-        res.json({ token })
+        const token = jwt.sign({
+            userId: user.id
+        }, JWT_SECRET);
+
+        res.json({ 
+            token,
+            user: {
+                id: user.id,
+                email: user.email,
+                name: user.name
+            }
+        });
 
     } catch(e) {
-        res.status(500).json({ message: "Something went wrong" })
+        console.error("Signin error:", e);
+        res.status(500).json({ message: "Something went wrong during signin" });
     } 
 })
 

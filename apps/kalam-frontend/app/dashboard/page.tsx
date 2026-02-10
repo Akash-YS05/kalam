@@ -2,10 +2,12 @@
 
 import { useEffect, useState, useCallback } from "react"
 import { motion } from "framer-motion"
-import { Plus, Trash2, Loader2, Share2, PenTool } from "lucide-react"
+import { Plus, Trash2, Loader2, Share2, PenTool, LogOut } from "lucide-react"
 import axios from "axios"
 import { HTTP_URL } from "@/config"
 import { useRouter } from "next/navigation"
+import { useSession, signOut } from "next-auth/react"
+import { useBackendToken } from "@/hooks/useBackendToken"
 
 interface Room {
   id: number
@@ -15,36 +17,44 @@ interface Room {
 export default function Dashboard() {
   const [rooms, setRooms] = useState<Room[]>([])
   const [newRoomName, setNewRoomName] = useState("")
-  const [isLoading, setIsLoading] = useState(true)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isLoadingRooms, setIsLoadingRooms] = useState(true)
   const router = useRouter()
+  
+  const { data: session, status: sessionStatus } = useSession()
+  const { token, isLoading: isTokenLoading, error: tokenError } = useBackendToken()
 
   const fetchRooms = useCallback(async () => {
+    if (!token) return
+    
     try {
-      const res = await axios.get<{ rooms: Room[] }>(`${HTTP_URL}/room`)
+      const res = await axios.get<{ rooms: Room[] }>(`${HTTP_URL}/room`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
       setRooms(res.data.rooms ?? [])
     } catch (err) {
       console.error("Failed to fetch rooms", err)
     } finally {
-      setIsLoading(false)
+      setIsLoadingRooms(false)
     }
-  }, [])
+  }, [token])
 
-  // Combined auth check and data fetch to avoid race condition
+  // Redirect if not authenticated
   useEffect(() => {
-    const token = localStorage.getItem("token")
-    if (!token) {
+    if (sessionStatus === "unauthenticated") {
       router.push("/signin")
-      return
     }
+  }, [sessionStatus, router])
 
-    axios.defaults.headers.common.Authorization = `Bearer ${token}`
-    setIsAuthenticated(true)
-    fetchRooms()
-  }, [router, fetchRooms])
+  // Fetch rooms when token is ready
+  useEffect(() => {
+    if (token) {
+      axios.defaults.headers.common.Authorization = `Bearer ${token}`
+      fetchRooms()
+    }
+  }, [token, fetchRooms])
 
   const handleCreateRoom = async () => {
-    if (!newRoomName.trim()) return
+    if (!newRoomName.trim() || !token) return
 
     const optimisticRoom = {
       id: Date.now(), // Temporary ID
@@ -56,7 +66,11 @@ export default function Dashboard() {
     setNewRoomName("")
 
     try {
-      const res = await axios.post<{ roomId: number }>(`${HTTP_URL}/room`, { name: newRoomName.trim() })
+      const res = await axios.post<{ roomId: number }>(
+        `${HTTP_URL}/room`, 
+        { name: newRoomName.trim() },
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
       // Update with real ID from server
       setRooms(prev => prev.map(room => 
         room.id === optimisticRoom.id 
@@ -71,13 +85,17 @@ export default function Dashboard() {
   }
 
   const handleDeleteRoom = async (id: number) => {
+    if (!token) return
+    
     const previousRooms = rooms
     
     // Optimistic update - remove from UI immediately
     setRooms(prev => prev.filter(r => r.id !== id))
 
     try {
-      await axios.delete(`${HTTP_URL}/room/${id}`)
+      await axios.delete(`${HTTP_URL}/room/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
     } catch (error) {
       // Revert on error
       setRooms(previousRooms)
@@ -91,11 +109,47 @@ export default function Dashboard() {
     )
   }
 
+  const handleSignOut = async () => {
+    // Clear both old and new token keys
+    localStorage.removeItem("backend_token")
+    localStorage.removeItem("token")
+    await signOut({ callbackUrl: "/signin" })
+  }
+
+  // Show loading state while session or token is loading
+  if (sessionStatus === "loading" || isTokenLoading) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="animate-spin text-violet-500 h-8 w-8" />
+          <p className="text-gray-400">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Show error if token fetch failed
+  if (tokenError) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <p className="text-red-400">Failed to authenticate: {tokenError}</p>
+          <button
+            onClick={() => router.push("/signin")}
+            className="px-4 py-2 bg-violet-600 hover:bg-violet-700 rounded-lg"
+          >
+            Sign In Again
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-black text-white relative overflow-hidden">
       <div className="relative z-10 p-8 pt-16 max-w-6xl mx-auto space-y-12">
 
-        {/* Header */}
+        {/* Header with user info and sign out */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -106,6 +160,20 @@ export default function Dashboard() {
           <p className="text-xl font-light">
             Manage your creative spaces
           </p>
+          {session?.user && (
+            <div className="flex items-center justify-center gap-4 pt-2">
+              <span className="text-gray-400">
+                {session.user.email}
+              </span>
+              <button
+                onClick={handleSignOut}
+                className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+              >
+                <LogOut className="h-4 w-4" />
+                Sign Out
+              </button>
+            </div>
+          )}
         </motion.div>
 
         {/* Create */}
@@ -129,13 +197,13 @@ export default function Dashboard() {
         </div>
 
         {/* Grid */}
-        {isLoading && (
+        {isLoadingRooms && (
           <div className="flex justify-center py-12">
             <Loader2 className="animate-spin text-violet-500" />
           </div>
         )}
 
-        {!isLoading && rooms.length === 0 && (
+        {!isLoadingRooms && rooms.length === 0 && (
           <p className="text-center py-12 text-gray-400">
             No canvases yet
           </p>

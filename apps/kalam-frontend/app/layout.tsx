@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Satisfy, Gotu, Noto_Serif_Devanagari } from "next/font/google";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next"
+import { Providers } from "@/components/Providers";
 
 // Load fonts
 const geistSans = Geist({
@@ -76,7 +77,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} ${satisfy.variable} ${gotu.variable} ${devanagri.variable}`}>
-        {children}
+        <Providers>
+          {children}
+        </Providers>
         <Analytics/>
       </body>
     </html>

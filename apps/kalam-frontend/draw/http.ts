@@ -25,13 +25,15 @@ export type Shape = {
 };
 
 export async function getExistingShapes(roomId: string): Promise<Shape[]> {
-    // Ensure auth header is set
-    const token = localStorage.getItem("token");
-    if (token) {
-        axios.defaults.headers.common.Authorization = `Bearer ${token}`;
+    // Check for backend token (NextAuth flow) or legacy token
+    const token = localStorage.getItem("backend_token") || localStorage.getItem("token");
+    if (!token) {
+        throw new Error("No authentication token available");
     }
 
-    const res = await axios.get(`${HTTP_URL}/chats/${roomId}`);
+    const res = await axios.get(`${HTTP_URL}/chats/${roomId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+    });
     const messages = res.data.messages;
 
     const shapes = messages
