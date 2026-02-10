@@ -31,7 +31,7 @@ model Room {
   admin     User     @relation(fields: [adminId], references: [id])
   chats     Chat[]
 
-  @@index([adminId]) // Index for faster dashboard queries
+  @@index([adminId]) // Index for quicker dashboard queries
 }
 
 model Chat {
