@@ -16,19 +16,8 @@ export default function Dashboard() {
   const [rooms, setRooms] = useState<Room[]>([])
   const [newRoomName, setNewRoomName] = useState("")
   const [isLoading, setIsLoading] = useState(true)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
   const router = useRouter()
-
-  // 🔐 Set auth ONCE
-  useEffect(() => {
-    const token = localStorage.getItem("token")
-    if (!token) {
-      console.error("No auth token")
-      setIsLoading(false)
-      return
-    }
-
-    axios.defaults.headers.common.Authorization = `Bearer ${token}`
-  }, [])
 
   const fetchRooms = useCallback(async () => {
     try {
@@ -41,27 +30,57 @@ export default function Dashboard() {
     }
   }, [])
 
+  // Combined auth check and data fetch to avoid race condition
   useEffect(() => {
+    const token = localStorage.getItem("token")
+    if (!token) {
+      router.push("/signin")
+      return
+    }
+
+    axios.defaults.headers.common.Authorization = `Bearer ${token}`
+    setIsAuthenticated(true)
     fetchRooms()
-  }, [fetchRooms])
+  }, [router, fetchRooms])
 
   const handleCreateRoom = async () => {
     if (!newRoomName.trim()) return
 
+    const optimisticRoom = {
+      id: Date.now(), // Temporary ID
+      slug: newRoomName.trim()
+    }
+    
+    // Optimistic update - add to UI immediately
+    setRooms(prev => [optimisticRoom, ...prev])
+    setNewRoomName("")
+
     try {
-      await axios.post(`${HTTP_URL}/room`, { name: newRoomName })
-      setNewRoomName("")
-      fetchRooms()
+      const res = await axios.post<{ roomId: number }>(`${HTTP_URL}/room`, { name: newRoomName.trim() })
+      // Update with real ID from server
+      setRooms(prev => prev.map(room => 
+        room.id === optimisticRoom.id 
+          ? { ...room, id: res.data.roomId }
+          : room
+      ))
     } catch (error) {
+      // Revert on error
+      setRooms(prev => prev.filter(room => room.id !== optimisticRoom.id))
       console.error("Create room failed", error)
     }
   }
 
   const handleDeleteRoom = async (id: number) => {
+    const previousRooms = rooms
+    
+    // Optimistic update - remove from UI immediately
+    setRooms(prev => prev.filter(r => r.id !== id))
+
     try {
       await axios.delete(`${HTTP_URL}/room/${id}`)
-      fetchRooms()
     } catch (error) {
+      // Revert on error
+      setRooms(previousRooms)
       console.error("Delete room failed", error)
     }
   }
