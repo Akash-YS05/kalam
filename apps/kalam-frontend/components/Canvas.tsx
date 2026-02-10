@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, ReactNode } from "react"
 import { Circle, RectangleHorizontal, Sun, Moon, Home, LogOut, Eraser, PencilLine, ArrowRightLeft, EqualApproximately, Undo } from "lucide-react"
 import { Game } from "@/draw/Game";
 import { useRouter } from "next/navigation";
+import { Shape } from "@/draw/http";
 
 export type Tool = "pencil" | "rect" | "circle" | "line" | "arrow" | "eraser"
 
@@ -107,7 +108,15 @@ function Topbar({
   )
 }
 
-export default function Canvas({ roomId, socket }: { roomId: string; socket: WebSocket }) {
+export default function Canvas({ 
+  roomId, 
+  socket, 
+  initialShapes 
+}: { 
+  roomId: string; 
+  socket: WebSocket;
+  initialShapes: Shape[];
+}) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [game, setGame] = useState<Game>() 
   const [selectedTool, setSelectedTool] = useState<Tool>("rect")
@@ -144,14 +153,14 @@ export default function Canvas({ roomId, socket }: { roomId: string; socket: Web
 
   useEffect(() => {
     if (canvasRef.current) {
-      const g = new Game(canvasRef.current, roomId, socket)
+      const g = new Game(canvasRef.current, roomId, socket, initialShapes)
       setGame(g)
 
       return () => {
         g.destroy()
       }
     }
-  }, [canvasRef, roomId, socket])
+  }, [canvasRef, roomId, socket, initialShapes])
 
   const handleUndo = () => {
     game?.undo();

@@ -1,5 +1,4 @@
 import { Tool } from "@/components/Canvas";
-import { getExistingShapes } from "./http";
 
 type Shape = {
     type: "rect",
@@ -55,22 +54,24 @@ export class Game {
     
     socket: WebSocket;
     
-    constructor(canvas: HTMLCanvasElement, roomId: string, socket: WebSocket) {
+    constructor(
+        canvas: HTMLCanvasElement, 
+        roomId: string, 
+        socket: WebSocket,
+        initialShapes: Shape[] = []  // Accept pre-fetched shapes
+    ) {
         this.canvas = canvas;
-        this.ctx = canvas.getContext('2d')!;    // ! - means that the value will never be null
-        this.existingShape = []
+        this.ctx = canvas.getContext('2d')!;
+        this.existingShape = initialShapes;  // Use pre-fetched shapes directly
         this.roomId = roomId;
         this.socket = socket;
         this.clicked = false;
 
-        if (this.socket.readyState === WebSocket.OPEN) {
-            this.init();
-        } else {
-            this.socket.addEventListener('open', () => {
-                this.init();
-            });
-        }        this.initHandlers();
+        // No need to fetch shapes anymore - they're already loaded
+        this.saveToUndoHistory();
+        this.initHandlers();
         this.initMouseHandlers();
+        this.clearCanvas();  // Render immediately
     }
 
     destroy() {
@@ -92,12 +93,6 @@ export class Game {
             type: "join_room",
             roomId: this.roomId
         });
-    }
-
-    async init() {
-        this.existingShape = await getExistingShapes(this.roomId);
-        this.saveToUndoHistory();
-        this.clearCanvas();
     }
 
     initHandlers() {
