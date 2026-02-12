@@ -57,6 +57,9 @@ export class Game {
     private needsActiveRender = false;
     private pendingMouseEvent: { x: number, y: number } | null = null;
     
+    // Track if we just sent a message to avoid processing our own broadcast
+    private pendingLocalAction = false;
+    
     // Zoom and pan state
     private scale = 1;
     private offsetX = 0;
@@ -74,10 +77,15 @@ export class Game {
     private safeSend(data: any) {
         if (this.socket.readyState === WebSocket.OPEN) {
             try {
+                // Mark that we're sending a local action to avoid processing our own echo
+                if (data.type === "chat") {
+                    this.pendingLocalAction = true;
+                }
                 this.socket.send(JSON.stringify(data));
                 return true;
             } catch (error) {
                 console.error("Error sending message:", error);
+                this.pendingLocalAction = false;
                 return false;
             }
         } else {
@@ -211,6 +219,12 @@ export class Game {
             const message = JSON.parse(event.data);
     
             if (message.type === "chat") {
+                // Skip if this is our own message being echoed back
+                if (this.pendingLocalAction) {
+                    this.pendingLocalAction = false;
+                    return;
+                }
+                
                 const parsedShape = JSON.parse(message.message);
                 if (parsedShape.undo) {
                     this.existingShape = parsedShape.shapes || [];
