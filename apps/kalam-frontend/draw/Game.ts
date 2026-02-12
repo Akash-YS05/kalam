@@ -6,21 +6,29 @@ type Shape = {
     y: number,
     width: number,
     height: number,
+    color?: string,
+    strokeWidth?: number,
 } | {
     type: "circle",
     centerX: number,
     centerY: number,
     radius: number,
+    color?: string,
+    strokeWidth?: number,
 } | {
     type: "pencil",
-    points: {x: number, y: number}[]
+    points: {x: number, y: number}[],
+    color?: string,
+    strokeWidth?: number,
 } | {
     type: "line",
     startX: number,
     startY: number,
     endX: number,
     endY: number,
-    isArrow: boolean  
+    isArrow: boolean,
+    color?: string,
+    strokeWidth?: number,
 }
 
 export class Game {
@@ -47,7 +55,22 @@ export class Game {
     private animationFrameId: number | null = null;
     private needsStaticRender = false;
     private needsActiveRender = false;
-    private pendingMouseEvent: { x: number, y: number } | null = null; 
+    private pendingMouseEvent: { x: number, y: number } | null = null;
+    
+    // Zoom and pan state
+    private scale = 1;
+    private offsetX = 0;
+    private offsetY = 0;
+    private isPanning = false;
+    private lastPanX = 0;
+    private lastPanY = 0;
+    
+    // Stroke customization
+    private strokeColor = "#ffffff";
+    private strokeWidth = 2;
+    
+    // Callback for zoom changes
+    private onZoomChange?: (scale: number) => void; 
     private safeSend(data: any) {
         if (this.socket.readyState === WebSocket.OPEN) {
             try {
@@ -71,23 +94,27 @@ export class Game {
         activeCanvas: HTMLCanvasElement,
         roomId: string, 
         socket: WebSocket,
-        initialShapes: Shape[] = []  // Accept pre-fetched shapes
+        initialShapes: Shape[] = []
     ) {
         this.staticCanvas = staticCanvas;
         this.staticCtx = staticCanvas.getContext('2d')!;
         this.activeCanvas = activeCanvas;
         this.activeCtx = activeCanvas.getContext('2d')!;
         
-        this.existingShape = initialShapes;  // Use pre-fetched shapes directly
+        this.existingShape = initialShapes;
         this.roomId = roomId;
         this.socket = socket;
         this.clicked = false;
+        
+        // Set initial stroke color based on theme
+        const isDark = document.body.classList.contains('dark');
+        this.strokeColor = isDark ? "#ffffff" : "#000000";
 
-        // No need to fetch shapes anymore - they're already loaded
         this.saveToUndoHistory();
         this.initHandlers();
         this.initPointerHandlers();
-        this.renderStaticLayer();  // Render committed shapes immediately
+        this.initWheelHandler();
+        this.renderStaticLayer();
     }
 
     destroy() {
@@ -100,14 +127,59 @@ export class Game {
         this.activeCanvas.removeEventListener("pointerup", this.pointerUpHandler);
         this.activeCanvas.removeEventListener("pointermove", this.pointerMoveHandler);
         this.activeCanvas.removeEventListener("pointerleave", this.pointerLeaveHandler);
+        this.activeCanvas.removeEventListener("wheel", this.wheelHandler);
     }
 
-    setTool(tool: "circle" | "rect" | "pencil" | "line" | "arrow" | "eraser") {
+    setTool(tool: "circle" | "rect" | "pencil" | "line" | "arrow" | "eraser" | "pan") {
         this.selectedTool = tool;
     }
 
     setEraserSize(size: number) {
         this.eraserSize = size;
+    }
+    
+    setStrokeColor(color: string) {
+        this.strokeColor = color;
+    }
+    
+    setStrokeWidth(width: number) {
+        this.strokeWidth = width;
+    }
+    
+    getScale(): number {
+        return this.scale;
+    }
+    
+    setOnZoomChange(callback: (scale: number) => void) {
+        this.onZoomChange = callback;
+    }
+    
+    // Reset zoom and pan to default
+    resetView() {
+        this.scale = 1;
+        this.offsetX = 0;
+        this.offsetY = 0;
+        this.renderStaticLayer();
+        this.clearActiveLayer();
+        this.onZoomChange?.(this.scale);
+    }
+    
+    // Zoom to a specific level
+    setZoom(newScale: number) {
+        const centerX = this.staticCanvas.width / 2;
+        const centerY = this.staticCanvas.height / 2;
+        
+        // Clamp scale
+        newScale = Math.max(0.1, Math.min(5, newScale));
+        
+        // Adjust offset to zoom towards center
+        this.offsetX = centerX - (centerX - this.offsetX) * (newScale / this.scale);
+        this.offsetY = centerY - (centerY - this.offsetY) * (newScale / this.scale);
+        
+        this.scale = newScale;
+        this.renderStaticLayer();
+        this.clearActiveLayer();
+        this.onZoomChange?.(this.scale);
     }
 
     joinRoom() {
@@ -195,14 +267,19 @@ export class Game {
         const bgColor = isDark ? '#0a0a0a' : '#fafafa'; 
         ctx.fillStyle = bgColor;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        // Set default stroke style
-        ctx.strokeStyle = isDark ? "#ffffff" : "#000000";
-        ctx.lineWidth = 2;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
+        
+        // Apply zoom and pan transformation
+        ctx.save();
+        ctx.translate(this.offsetX, this.offsetY);
+        ctx.scale(this.scale, this.scale);
         
         this.existingShape.forEach((shape) => {
+            // Use shape's color if available, otherwise use theme default
+            ctx.strokeStyle = shape.color || (isDark ? "#ffffff" : "#000000");
+            ctx.lineWidth = (shape.strokeWidth || 2);
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            
             if (shape.type === "rect") {
                 ctx.strokeRect(shape.x, shape.y, shape.width, shape.height);
             } else if (shape.type === "circle") {
@@ -210,11 +287,13 @@ export class Game {
                 ctx.arc(shape.centerX, shape.centerY, Math.abs(shape.radius), 0, Math.PI * 2);
                 ctx.stroke();
             } else if (shape.type === "pencil") {
-                this.drawPathOnContext(ctx, shape.points);
+                this.drawPathOnContext(ctx, shape.points, shape.strokeWidth || 2);
             } else if (shape.type === "line") {
                 this.drawLineOnContext(ctx, shape.startX, shape.startY, shape.endX, shape.endY, shape.isArrow);
             }
         });
+        
+        ctx.restore();
     }
 
     // Clear active layer only
@@ -226,14 +305,20 @@ export class Game {
     renderActiveShape(endX: number, endY: number) {
         this.clearActiveLayer();
         const ctx = this.activeCtx;
-        const isDark = document.body.classList.contains('dark');
-        ctx.strokeStyle = isDark ? "#ffffff" : "#000000";
-        ctx.lineWidth = 2;
+        
+        // Apply zoom and pan transformation (same as static layer)
+        ctx.save();
+        ctx.translate(this.offsetX, this.offsetY);
+        ctx.scale(this.scale, this.scale);
+        
+        // Use current stroke settings
+        ctx.strokeStyle = this.strokeColor;
+        ctx.lineWidth = this.strokeWidth;
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
 
         if (this.selectedTool === "pencil" && this.currentPencilShape && this.currentPencilShape.type === "pencil") {
-            this.drawPathOnContext(ctx, this.currentPencilShape.points);
+            this.drawPathOnContext(ctx, this.currentPencilShape.points, this.strokeWidth);
         } else if (this.selectedTool === "line" || this.selectedTool === "arrow") {
             this.drawLineOnContext(ctx, this.startX, this.startY, endX, endY, this.selectedTool === "arrow");
         } else if (this.selectedTool === "rect") {
@@ -251,6 +336,8 @@ export class Game {
             ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
             ctx.stroke();
         }
+        
+        ctx.restore();
     }
 
     // Schedule a render using requestAnimationFrame
@@ -279,13 +366,13 @@ export class Game {
     }
 
     // Draw smooth path using quadratic bezier curves
-    drawPathOnContext(ctx: CanvasRenderingContext2D, points: {x: number, y: number}[]) {
+    drawPathOnContext(ctx: CanvasRenderingContext2D, points: {x: number, y: number}[], lineWidth: number = 2) {
         if (points.length < 2) return;
         
         ctx.beginPath();
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
-        ctx.lineWidth = 2;
+        ctx.lineWidth = lineWidth;
         ctx.moveTo(points[0].x, points[0].y);
         
         if (points.length === 2) {
@@ -427,7 +514,21 @@ export class Game {
     }
 
     // Get coordinates from pointer event (handles both mouse and touch)
+    // Converts screen coordinates to world coordinates (accounting for zoom/pan)
     private getPointerCoords(e: PointerEvent): { x: number, y: number } {
+        const rect = this.activeCanvas.getBoundingClientRect();
+        const screenX = e.clientX - rect.left;
+        const screenY = e.clientY - rect.top;
+        
+        // Convert screen coordinates to world coordinates
+        const worldX = (screenX - this.offsetX) / this.scale;
+        const worldY = (screenY - this.offsetY) / this.scale;
+        
+        return { x: worldX, y: worldY };
+    }
+    
+    // Get screen coordinates (for pan tool which works in screen space)
+    private getScreenCoords(e: PointerEvent): { x: number, y: number } {
         const rect = this.activeCanvas.getBoundingClientRect();
         return {
             x: e.clientX - rect.left,
@@ -436,11 +537,22 @@ export class Game {
     }
 
     pointerUpHandler = (e: PointerEvent) => {
-        const coords = this.getPointerCoords(e);
         this.clicked = false;
+        this.isPanning = false;
         this.clearActiveLayer();  // Clear the preview
+        
+        // Pan tool doesn't create shapes
+        if (this.selectedTool === "pan") {
+            return;
+        }
+        
+        const coords = this.getPointerCoords(e);
     
         if (this.selectedTool === "pencil" && this.currentPencilShape) {
+            // Add color and strokeWidth to the shape
+            this.currentPencilShape.color = this.strokeColor;
+            this.currentPencilShape.strokeWidth = this.strokeWidth;
+            
             this.existingShape.push(this.currentPencilShape);
             
             this.safeSend({
@@ -451,7 +563,7 @@ export class Game {
             
             this.saveToUndoHistory();
             this.currentPencilShape = null;
-            this.renderStaticLayer();  // Render the new shape to static layer
+            this.renderStaticLayer();
         } else if (this.selectedTool === "line" || this.selectedTool === "arrow") {
             const shape: Shape = {
                 type: "line",
@@ -459,7 +571,9 @@ export class Game {
                 startY: this.startY,
                 endX: coords.x,
                 endY: coords.y,
-                isArrow: this.selectedTool === "arrow"  
+                isArrow: this.selectedTool === "arrow",
+                color: this.strokeColor,
+                strokeWidth: this.strokeWidth,
             };
             
             this.existingShape.push(shape);
@@ -482,7 +596,9 @@ export class Game {
                     x: this.startX,
                     y: this.startY,
                     width,
-                    height
+                    height,
+                    color: this.strokeColor,
+                    strokeWidth: this.strokeWidth,
                 };
             } else if (this.selectedTool === "circle") {
                 const radius = Math.max(Math.abs(width), Math.abs(height)) / 2;
@@ -490,7 +606,9 @@ export class Game {
                     type: "circle",
                     centerX: this.startX + width/2,
                     centerY: this.startY + height/2,
-                    radius: radius
+                    radius: radius,
+                    color: this.strokeColor,
+                    strokeWidth: this.strokeWidth,
                 };
             }
     
@@ -512,8 +630,18 @@ export class Game {
         // Capture pointer for better touch handling
         this.activeCanvas.setPointerCapture(e.pointerId);
         
-        const coords = this.getPointerCoords(e);
         this.clicked = true;
+        
+        // Pan tool works in screen space
+        if (this.selectedTool === "pan") {
+            const screenCoords = this.getScreenCoords(e);
+            this.isPanning = true;
+            this.lastPanX = screenCoords.x;
+            this.lastPanY = screenCoords.y;
+            return;
+        }
+        
+        const coords = this.getPointerCoords(e);
         this.startX = coords.x;
         this.startY = coords.y;
 
@@ -545,6 +673,23 @@ export class Game {
     pointerMoveHandler = (e: PointerEvent) => {
         if (!this.clicked) return;
         
+        // Handle pan tool in screen space
+        if (this.selectedTool === "pan" && this.isPanning) {
+            const screenCoords = this.getScreenCoords(e);
+            const dx = screenCoords.x - this.lastPanX;
+            const dy = screenCoords.y - this.lastPanY;
+            
+            this.offsetX += dx;
+            this.offsetY += dy;
+            
+            this.lastPanX = screenCoords.x;
+            this.lastPanY = screenCoords.y;
+            
+            this.renderStaticLayer();
+            this.clearActiveLayer();
+            return;
+        }
+        
         const coords = this.getPointerCoords(e);
     
         if (this.selectedTool === "pencil" && this.currentPencilShape && this.currentPencilShape.type === "pencil") {
@@ -560,11 +705,17 @@ export class Game {
             
             // Draw smooth incremental segment on active layer
             const ctx = this.activeCtx;
-            const isDark = document.body.classList.contains('dark');
-            ctx.strokeStyle = isDark ? "#ffffff" : "#000000";
+            
+            // Apply zoom/pan transforms for live drawing
+            ctx.save();
+            ctx.translate(this.offsetX, this.offsetY);
+            ctx.scale(this.scale, this.scale);
+            
+            // Use current stroke settings
+            ctx.strokeStyle = this.strokeColor;
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
-            ctx.lineWidth = 2;
+            ctx.lineWidth = this.strokeWidth;
             
             // For smoother live drawing, use quadratic bezier if we have enough points
             if (points.length >= 3) {
@@ -589,6 +740,8 @@ export class Game {
                 ctx.lineTo(newPoint.x, newPoint.y);
                 ctx.stroke();
             }
+            
+            ctx.restore();
             
         } else if (this.selectedTool === "eraser") {
             // Find a shape to erase at the current mouse position
@@ -635,5 +788,33 @@ export class Game {
         
         // Prevent default touch behaviors (scrolling, zooming)
         this.activeCanvas.style.touchAction = "none";
+    }
+
+    // Wheel handler for zoom
+    wheelHandler = (e: WheelEvent) => {
+        e.preventDefault();
+        
+        const rect = this.activeCanvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+        
+        // Zoom factor
+        const zoomIntensity = 0.1;
+        const delta = e.deltaY > 0 ? -zoomIntensity : zoomIntensity;
+        const newScale = Math.max(0.1, Math.min(5, this.scale * (1 + delta)));
+        
+        // Zoom towards mouse position
+        const scaleChange = newScale / this.scale;
+        this.offsetX = mouseX - (mouseX - this.offsetX) * scaleChange;
+        this.offsetY = mouseY - (mouseY - this.offsetY) * scaleChange;
+        
+        this.scale = newScale;
+        this.renderStaticLayer();
+        this.clearActiveLayer();
+        this.onZoomChange?.(this.scale);
+    };
+
+    initWheelHandler() {
+        this.activeCanvas.addEventListener("wheel", this.wheelHandler, { passive: false });
     }
 }
