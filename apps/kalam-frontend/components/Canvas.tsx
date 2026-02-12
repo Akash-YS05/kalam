@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react"
-import { Circle, RectangleHorizontal, Sun, Moon, Home, LogOut, Eraser, PencilLine, ArrowRightLeft, Pencil, Undo, Hand, ZoomIn, ZoomOut, RotateCcw } from "lucide-react"
+import { Circle, RectangleHorizontal, Sun, Moon, Home, LogOut, Eraser, PencilLine, ArrowRightLeft, Pencil, Undo, Hand, ZoomIn, ZoomOut, RotateCcw, Download } from "lucide-react"
 import { Game } from "@/draw/Game";
 import { useRouter } from "next/navigation";
 import { Shape } from "@/draw/http";
@@ -69,6 +69,7 @@ function Topbar({
   isDarkMode,
   toggleTheme,
   handleUndo,
+  handleExport,
   strokeColor,
   setStrokeColor,
   strokeWidth,
@@ -83,6 +84,7 @@ function Topbar({
   isDarkMode: boolean
   toggleTheme: () => void
   handleUndo: () => void
+  handleExport: () => void
   strokeColor: string
   setStrokeColor: (color: string) => void
   strokeWidth: number
@@ -119,6 +121,14 @@ function Topbar({
             activated={false}
             tooltip="Undo"
             shortcut="Ctrl+Z"
+          />
+          
+          <IconButton
+            onClick={handleExport}
+            icon={<Download size={20} />}
+            activated={false}
+            tooltip="Export as PNG"
+            shortcut="Ctrl+E"
           />
           
           <IconButton
@@ -339,6 +349,13 @@ export default function Canvas({
         return;
       }
       
+      // Ctrl+E for export
+      if ((e.ctrlKey || e.metaKey) && e.key === 'e') {
+        e.preventDefault();
+        game?.exportAsImage();
+        return;
+      }
+      
       // Space for temporary pan mode
       if (e.key === ' ' && !e.repeat) {
         e.preventDefault();
@@ -396,6 +413,10 @@ export default function Canvas({
     game?.undo();
   }, [game]);
 
+  const handleExport = useCallback(() => {
+    game?.exportAsImage();
+  }, [game]);
+
   const handleZoomIn = useCallback(() => {
     if (game) {
       game.setZoom(game.getScale() * 1.2);
@@ -435,6 +456,7 @@ export default function Canvas({
         isDarkMode={isDarkMode} 
         toggleTheme={toggleTheme} 
         handleUndo={handleUndo}
+        handleExport={handleExport}
         strokeColor={strokeColor}
         setStrokeColor={setStrokeColor}
         strokeWidth={strokeWidth}

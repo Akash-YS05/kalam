@@ -4,9 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "node -e \"require('fs').rmSync('.next', {recursive:true, force:true})\" && next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "clean": "node -e \"require('fs').rmSync('.next', {recursive:true, force:true})\""
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",

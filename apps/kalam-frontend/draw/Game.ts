@@ -189,6 +189,97 @@ export class Game {
         this.clearActiveLayer();
         this.onZoomChange?.(this.scale);
     }
+    
+    // Export canvas as PNG image
+    exportAsImage(filename: string = 'kalam-drawing.png') {
+        // Create a temporary canvas to render without zoom/pan transforms
+        const tempCanvas = document.createElement('canvas');
+        const tempCtx = tempCanvas.getContext('2d')!;
+        
+        // Calculate bounding box of all shapes
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        
+        this.existingShape.forEach(shape => {
+            if (shape.type === "rect") {
+                minX = Math.min(minX, shape.x, shape.x + shape.width);
+                minY = Math.min(minY, shape.y, shape.y + shape.height);
+                maxX = Math.max(maxX, shape.x, shape.x + shape.width);
+                maxY = Math.max(maxY, shape.y, shape.y + shape.height);
+            } else if (shape.type === "circle") {
+                minX = Math.min(minX, shape.centerX - shape.radius);
+                minY = Math.min(minY, shape.centerY - shape.radius);
+                maxX = Math.max(maxX, shape.centerX + shape.radius);
+                maxY = Math.max(maxY, shape.centerY + shape.radius);
+            } else if (shape.type === "pencil") {
+                shape.points.forEach(p => {
+                    minX = Math.min(minX, p.x);
+                    minY = Math.min(minY, p.y);
+                    maxX = Math.max(maxX, p.x);
+                    maxY = Math.max(maxY, p.y);
+                });
+            } else if (shape.type === "line") {
+                minX = Math.min(minX, shape.startX, shape.endX);
+                minY = Math.min(minY, shape.startY, shape.endY);
+                maxX = Math.max(maxX, shape.startX, shape.endX);
+                maxY = Math.max(maxY, shape.startY, shape.endY);
+            }
+        });
+        
+        // Add padding
+        const padding = 40;
+        minX -= padding;
+        minY -= padding;
+        maxX += padding;
+        maxY += padding;
+        
+        // If no shapes, export the current viewport
+        if (!isFinite(minX) || this.existingShape.length === 0) {
+            minX = 0;
+            minY = 0;
+            maxX = this.staticCanvas.width;
+            maxY = this.staticCanvas.height;
+        }
+        
+        const width = maxX - minX;
+        const height = maxY - minY;
+        
+        tempCanvas.width = width;
+        tempCanvas.height = height;
+        
+        // Fill background
+        const isDark = document.body.classList.contains('dark');
+        tempCtx.fillStyle = isDark ? '#0a0a0a' : '#fafafa';
+        tempCtx.fillRect(0, 0, width, height);
+        
+        // Translate to account for bounding box offset
+        tempCtx.translate(-minX, -minY);
+        
+        // Render all shapes
+        this.existingShape.forEach(shape => {
+            tempCtx.strokeStyle = shape.color || (isDark ? "#ffffff" : "#000000");
+            tempCtx.lineWidth = shape.strokeWidth || 2;
+            tempCtx.lineCap = 'round';
+            tempCtx.lineJoin = 'round';
+            
+            if (shape.type === "rect") {
+                tempCtx.strokeRect(shape.x, shape.y, shape.width, shape.height);
+            } else if (shape.type === "circle") {
+                tempCtx.beginPath();
+                tempCtx.arc(shape.centerX, shape.centerY, Math.abs(shape.radius), 0, Math.PI * 2);
+                tempCtx.stroke();
+            } else if (shape.type === "pencil") {
+                this.drawPathOnContext(tempCtx, shape.points, shape.strokeWidth || 2);
+            } else if (shape.type === "line") {
+                this.drawLineOnContext(tempCtx, shape.startX, shape.startY, shape.endX, shape.endY, shape.isArrow);
+            }
+        });
+        
+        // Trigger download
+        const link = document.createElement('a');
+        link.download = filename;
+        link.href = tempCanvas.toDataURL('image/png');
+        link.click();
+    }
 
     joinRoom() {
         this.safeSend({
