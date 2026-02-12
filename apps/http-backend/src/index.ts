@@ -36,6 +36,11 @@ app.use(cors(corsOptions));
 // Handle preflight requests
 app.options("*", cors(corsOptions));
 
+// Health check endpoint for cold start wake-up
+app.get("/health", (req, res) => {
+    res.status(200).json({ status: "ok", timestamp: Date.now() });
+});
+
 // Rest of your routes...
 app.get("/", (req, res) => {
     res.send("KALAM HTTP BACKEND")
