@@ -137,6 +137,21 @@ export const authOptions: NextAuthOptions = {
   session: {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
+    updateAge: 24 * 60 * 60, // Update session every 24 hours
+  },
+  cookies: {
+    sessionToken: {
+      name: process.env.NODE_ENV === "production" 
+        ? "__Secure-next-auth.session-token" 
+        : "next-auth.session-token",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        // Don't set domain to allow cookies to work on any domain
+      },
+    },
   },
   callbacks: {
     async signIn({ user, account, profile }) {
@@ -193,18 +208,31 @@ export const authOptions: NextAuthOptions = {
 
       return true;
     },
-    async jwt({ token, user, account }): Promise<JWT> {
+    async jwt({ token, user, account, trigger }): Promise<JWT> {
+      // Initial sign in
       if (user) {
         token.id = user.id;
+        token.email = user.email;
+        token.name = user.name;
       }
       if (account) {
         token.accessToken = account.access_token;
       }
+      
+      // Return previous token if the user info hasn't changed
       return token;
     },
     async session({ session, token }): Promise<Session> {
-      if (session.user && token.id) {
-        session.user.id = token.id;
+      if (session.user) {
+        if (token.id) {
+          session.user.id = token.id;
+        }
+        if (token.email) {
+          session.user.email = token.email;
+        }
+        if (token.name) {
+          session.user.name = token.name;
+        }
       }
       return session;
     },
@@ -213,5 +241,6 @@ export const authOptions: NextAuthOptions = {
     signIn: "/signin",
     error: "/signin",
   },
+  secret: process.env.NEXTAUTH_SECRET,
   debug: process.env.NODE_ENV === "development",
 };

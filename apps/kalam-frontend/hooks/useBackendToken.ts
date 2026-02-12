@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 
 interface UseBackendTokenResult {
   token: string | null;
@@ -15,14 +15,20 @@ export function useBackendToken(): UseBackendTokenResult {
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const lastSessionId = useRef<string | null>(null);
 
-  const fetchToken = useCallback(async () => {
-    // Check localStorage first for cached token
-    const cachedToken = localStorage.getItem("backend_token");
-    if (cachedToken) {
-      setToken(cachedToken);
-      setIsLoading(false);
-      return;
+  const fetchToken = useCallback(async (forceRefresh = false) => {
+    // Check localStorage first for cached token (unless force refresh)
+    if (!forceRefresh) {
+      const cachedToken = localStorage.getItem("backend_token");
+      const cachedUserId = localStorage.getItem("backend_token_user_id");
+      
+      // Only use cached token if it belongs to current user
+      if (cachedToken && cachedUserId === session?.user?.id) {
+        setToken(cachedToken);
+        setIsLoading(false);
+        return;
+      }
     }
 
     try {
@@ -32,6 +38,13 @@ export function useBackendToken(): UseBackendTokenResult {
       const response = await fetch("/api/token");
       
       if (!response.ok) {
+        if (response.status === 401) {
+          // Session is invalid, clear everything
+          localStorage.removeItem("backend_token");
+          localStorage.removeItem("backend_token_user_id");
+          localStorage.removeItem("token");
+          throw new Error("Session expired, please sign in again");
+        }
         throw new Error("Failed to get backend token");
       }
 
@@ -39,6 +52,10 @@ export function useBackendToken(): UseBackendTokenResult {
       
       if (data.token) {
         localStorage.setItem("backend_token", data.token);
+        // Store which user this token belongs to
+        if (session?.user?.id) {
+          localStorage.setItem("backend_token_user_id", session.user.id);
+        }
         setToken(data.token);
       } else {
         throw new Error("No token in response");
@@ -46,10 +63,11 @@ export function useBackendToken(): UseBackendTokenResult {
     } catch (err) {
       console.error("Error fetching backend token:", err);
       setError(err instanceof Error ? err.message : "Failed to get token");
+      setToken(null);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [session?.user?.id]);
 
   useEffect(() => {
     // Wait for session to be determined
@@ -61,11 +79,22 @@ export function useBackendToken(): UseBackendTokenResult {
     if (status === "unauthenticated" || !session) {
       setToken(null);
       setIsLoading(false);
-      // Clear both old and new token keys
+      // Clear all token storage
       localStorage.removeItem("backend_token");
+      localStorage.removeItem("backend_token_user_id");
       localStorage.removeItem("token");
       return;
     }
+
+    // Check if user has changed (different user signed in)
+    const currentUserId = session.user?.id;
+    if (lastSessionId.current && lastSessionId.current !== currentUserId) {
+      // User changed, force refresh token
+      localStorage.removeItem("backend_token");
+      localStorage.removeItem("backend_token_user_id");
+      localStorage.removeItem("token");
+    }
+    lastSessionId.current = currentUserId || null;
 
     // Session exists, fetch backend token
     fetchToken();
@@ -73,7 +102,8 @@ export function useBackendToken(): UseBackendTokenResult {
 
   const refetch = useCallback(async () => {
     localStorage.removeItem("backend_token");
-    await fetchToken();
+    localStorage.removeItem("backend_token_user_id");
+    await fetchToken(true);
   }, [fetchToken]);
 
   return { token, isLoading: status === "loading" || isLoading, error, refetch };
