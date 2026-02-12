@@ -1,18 +1,19 @@
 "use client"
 
-import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, ImageIcon, Users, Shapes, Download, Plus, UserPlus, Palette, StarIcon, LogIn, LogOut } from "lucide-react"
+import { ArrowRight, ImageIcon, Users, Shapes, Download, Plus, UserPlus, Palette, StarIcon } from "lucide-react"
 import { Navbar } from "./navbar"
 import { Footer } from "./footer"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
 
 export default function Component() {
   const router = useRouter()
+  const { data: session, status } = useSession()
+  
   const handleAuth = () => {
-    const token = localStorage.getItem("token")
-    if (token) {
+    if (session) {
       router.push("/dashboard")
     } else {
       router.push("/signin")

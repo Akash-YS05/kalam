@@ -1,41 +1,27 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Github, LogOut } from "lucide-react"
+import { Github, LogOut, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useSession, signOut } from "next-auth/react"
 
 export function Navbar() {
   const router = useRouter()
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null)
+  const { data: session, status } = useSession()
 
-  // 🔁 Sync auth state
-  const syncAuthState = () => {
-    const token = localStorage.getItem("token")
-    setIsLoggedIn(!!token)
-  }
-
-  useEffect(() => {
-    syncAuthState()
-
-    // Listen for logout/login from other tabs or components
-    window.addEventListener("storage", syncAuthState)
-    return () => window.removeEventListener("storage", syncAuthState)
-  }, [])
-
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    // Clear backend tokens
+    localStorage.removeItem("backend_token")
+    localStorage.removeItem("backend_token_user_id")
     localStorage.removeItem("token")
-    syncAuthState()          // 👈 force UI update
-    router.push("/")         // optional redirect
+    await signOut({ callbackUrl: "/" })
   }
-
-  if (isLoggedIn === null) return null // prevents flicker
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4 bg-black/80 backdrop-blur-sm border-b border-gray-800">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
-        <div className="text-2xl font-devanagari">Kalam</div>
+        <Link href="/" className="text-2xl font-devanagari">Kalam</Link>
 
         <div className="hidden md:flex items-center space-x-8">
           <a href="#features" className="font-light hover:text-gray-300 transition-colors">
@@ -61,17 +47,23 @@ export function Navbar() {
             </Button>
           </Link>
 
-          {isLoggedIn ? (
-            <>
-              <Button
-                onClick={handleLogout}
-                size="sm"
-                className="bg-violet-800 hover:bg-violet-600 text-white font-light"
-              >
-                <LogOut className="w-4 h-4 mr-2" />
-                Logout
-              </Button>
-            </>
+          {status === "loading" ? (
+            <Button
+              size="sm"
+              disabled
+              className="bg-violet-800 text-white font-light"
+            >
+              <Loader2 className="w-4 h-4 animate-spin" />
+            </Button>
+          ) : session ? (
+            <Button
+              onClick={handleLogout}
+              size="sm"
+              className="bg-violet-800 hover:bg-violet-600 text-white font-light"
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Logout
+            </Button>
           ) : (
             <Button
               onClick={() => router.push("/signin")}
