@@ -25,8 +25,14 @@ type Shape = {
 
 export class Game {
 
-    private canvas: HTMLCanvasElement;
-    private ctx: CanvasRenderingContext2D;
+    // Static layer - for committed shapes (rarely redrawn)
+    private staticCanvas: HTMLCanvasElement;
+    private staticCtx: CanvasRenderingContext2D;
+    
+    // Active layer - for shape being drawn (frequently redrawn)
+    private activeCanvas: HTMLCanvasElement;
+    private activeCtx: CanvasRenderingContext2D;
+    
     private existingShape: Shape[];
     private roomId: string;
     private clicked: boolean;
@@ -35,7 +41,13 @@ export class Game {
     private selectedTool: Tool = "rect";
     private currentPencilShape: Shape | null = null;
     private undoHistory: Shape[][] = [];
-    private eraserSize = 10; 
+    private eraserSize = 10;
+    
+    // For requestAnimationFrame optimization
+    private animationFrameId: number | null = null;
+    private needsStaticRender = false;
+    private needsActiveRender = false;
+    private pendingMouseEvent: { x: number, y: number } | null = null; 
     private safeSend(data: any) {
         if (this.socket.readyState === WebSocket.OPEN) {
             try {
@@ -55,13 +67,17 @@ export class Game {
     socket: WebSocket;
     
     constructor(
-        canvas: HTMLCanvasElement, 
+        staticCanvas: HTMLCanvasElement,
+        activeCanvas: HTMLCanvasElement,
         roomId: string, 
         socket: WebSocket,
         initialShapes: Shape[] = []  // Accept pre-fetched shapes
     ) {
-        this.canvas = canvas;
-        this.ctx = canvas.getContext('2d')!;
+        this.staticCanvas = staticCanvas;
+        this.staticCtx = staticCanvas.getContext('2d')!;
+        this.activeCanvas = activeCanvas;
+        this.activeCtx = activeCanvas.getContext('2d')!;
+        
         this.existingShape = initialShapes;  // Use pre-fetched shapes directly
         this.roomId = roomId;
         this.socket = socket;
@@ -70,14 +86,20 @@ export class Game {
         // No need to fetch shapes anymore - they're already loaded
         this.saveToUndoHistory();
         this.initHandlers();
-        this.initMouseHandlers();
-        this.clearCanvas();  // Render immediately
+        this.initPointerHandlers();
+        this.renderStaticLayer();  // Render committed shapes immediately
     }
 
     destroy() {
-        this.canvas.removeEventListener("mousedown", this.mouseDownHandler)
-        this.canvas.removeEventListener("mouseup", this.mouseUpHandler)
-        this.canvas.removeEventListener("mousemove", this.mouseMoveHandler)
+        // Cancel any pending animation frame
+        if (this.animationFrameId) {
+            cancelAnimationFrame(this.animationFrameId);
+            this.animationFrameId = null;
+        }
+        this.activeCanvas.removeEventListener("pointerdown", this.pointerDownHandler);
+        this.activeCanvas.removeEventListener("pointerup", this.pointerUpHandler);
+        this.activeCanvas.removeEventListener("pointermove", this.pointerMoveHandler);
+        this.activeCanvas.removeEventListener("pointerleave", this.pointerLeaveHandler);
     }
 
     setTool(tool: "circle" | "rect" | "pencil" | "line" | "arrow" | "eraser") {
@@ -160,57 +182,137 @@ export class Game {
             roomId: this.roomId
         });
         
-        this.clearCanvas();
+        this.renderStaticLayer();
     }
 
-    clearCanvas() {
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    // Render static layer - only called when shapes are added/removed
+    renderStaticLayer() {
+        const ctx = this.staticCtx;
+        const canvas = this.staticCanvas;
+        
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
         const isDark = document.body.classList.contains('dark');
-        const bgColor = isDark ? '#0f0f0f' : '#fafafa'; 
-        this.ctx.fillStyle = bgColor;
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        const bgColor = isDark ? '#0a0a0a' : '#fafafa'; 
+        ctx.fillStyle = bgColor;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        this.existingShape.map((shape) => {
-            this.ctx.strokeStyle = document.body.classList.contains("dark") ? "#ffffff" : "#000000";
-            
+        // Set default stroke style
+        ctx.strokeStyle = isDark ? "#ffffff" : "#000000";
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        
+        this.existingShape.forEach((shape) => {
             if (shape.type === "rect") {
-                this.ctx.strokeRect(shape.x, shape.y, shape.width, shape.height);
+                ctx.strokeRect(shape.x, shape.y, shape.width, shape.height);
             } else if (shape.type === "circle") {
-                this.ctx.beginPath();
-                this.ctx.arc(shape.centerX, shape.centerY, Math.abs(shape.radius), 0, Math.PI * 2);
-                this.ctx.stroke();
-                this.ctx.closePath();
+                ctx.beginPath();
+                ctx.arc(shape.centerX, shape.centerY, Math.abs(shape.radius), 0, Math.PI * 2);
+                ctx.stroke();
             } else if (shape.type === "pencil") {
-                this.drawPath(shape.points);
+                this.drawPathOnContext(ctx, shape.points);
             } else if (shape.type === "line") {
-                this.drawLine(shape.startX, shape.startY, shape.endX, shape.endY, shape.isArrow);
+                this.drawLineOnContext(ctx, shape.startX, shape.startY, shape.endX, shape.endY, shape.isArrow);
             }
-        })
+        });
+    }
 
-        if (this.selectedTool === "eraser" && !this.clicked) {
-            // eraser preview maybe idk
+    // Clear active layer only
+    clearActiveLayer() {
+        this.activeCtx.clearRect(0, 0, this.activeCanvas.width, this.activeCanvas.height);
+    }
+
+    // Render the shape currently being drawn on the active layer
+    renderActiveShape(endX: number, endY: number) {
+        this.clearActiveLayer();
+        const ctx = this.activeCtx;
+        const isDark = document.body.classList.contains('dark');
+        ctx.strokeStyle = isDark ? "#ffffff" : "#000000";
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        if (this.selectedTool === "pencil" && this.currentPencilShape && this.currentPencilShape.type === "pencil") {
+            this.drawPathOnContext(ctx, this.currentPencilShape.points);
+        } else if (this.selectedTool === "line" || this.selectedTool === "arrow") {
+            this.drawLineOnContext(ctx, this.startX, this.startY, endX, endY, this.selectedTool === "arrow");
+        } else if (this.selectedTool === "rect") {
+            const width = endX - this.startX;
+            const height = endY - this.startY;
+            ctx.strokeRect(this.startX, this.startY, width, height);
+        } else if (this.selectedTool === "circle") {
+            const width = endX - this.startX;
+            const height = endY - this.startY;
+            const radius = Math.max(Math.abs(width), Math.abs(height)) / 2;
+            const centerX = this.startX + width / 2;
+            const centerY = this.startY + height / 2;
+            
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+            ctx.stroke();
         }
     }
 
-    drawPath(points: {x: number, y: number}[]) {
+    // Schedule a render using requestAnimationFrame
+    scheduleRender() {
+        if (this.animationFrameId === null) {
+            this.animationFrameId = requestAnimationFrame(() => {
+                this.animationFrameId = null;
+                
+                if (this.needsStaticRender) {
+                    this.renderStaticLayer();
+                    this.needsStaticRender = false;
+                }
+                
+                if (this.needsActiveRender && this.pendingMouseEvent) {
+                    this.renderActiveShape(this.pendingMouseEvent.x, this.pendingMouseEvent.y);
+                    this.needsActiveRender = false;
+                }
+            });
+        }
+    }
+
+    // Legacy method for compatibility - triggers static layer render
+    clearCanvas() {
+        this.renderStaticLayer();
+        this.clearActiveLayer();
+    }
+
+    // Draw smooth path using quadratic bezier curves
+    drawPathOnContext(ctx: CanvasRenderingContext2D, points: {x: number, y: number}[]) {
         if (points.length < 2) return;
         
-        this.ctx.beginPath();
-        this.ctx.moveTo(points[0].x, points[0].y);
+        ctx.beginPath();
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.lineWidth = 2;
+        ctx.moveTo(points[0].x, points[0].y);
         
-        for (let i = 1; i < points.length; i++) {
-            this.ctx.lineTo(points[i].x, points[i].y);
+        if (points.length === 2) {
+            // Just two points, draw a straight line
+            ctx.lineTo(points[1].x, points[1].y);
+        } else {
+            // Use quadratic bezier curves for smooth interpolation
+            for (let i = 1; i < points.length - 1; i++) {
+                const midX = (points[i].x + points[i + 1].x) / 2;
+                const midY = (points[i].y + points[i + 1].y) / 2;
+                ctx.quadraticCurveTo(points[i].x, points[i].y, midX, midY);
+            }
+            // Connect to the last point
+            const lastPoint = points[points.length - 1];
+            ctx.lineTo(lastPoint.x, lastPoint.y);
         }
         
-        this.ctx.stroke();
-        this.ctx.closePath();
+        ctx.stroke();
     }
 
-    drawLine(startX: number, startY: number, endX: number, endY: number, isArrow: boolean) {
-        this.ctx.beginPath();
-        this.ctx.moveTo(startX, startY);
-        this.ctx.lineTo(endX, endY);
-        this.ctx.stroke();
+    drawLineOnContext(ctx: CanvasRenderingContext2D, startX: number, startY: number, endX: number, endY: number, isArrow: boolean) {
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
         
         if (isArrow) {
             const headLength = 15;
@@ -218,20 +320,28 @@ export class Game {
             const dy = endY - startY;
             const angle = Math.atan2(dy, dx);
             
-            this.ctx.beginPath();
-            this.ctx.moveTo(endX, endY);
-            this.ctx.lineTo(
+            ctx.beginPath();
+            ctx.moveTo(endX, endY);
+            ctx.lineTo(
                 endX - headLength * Math.cos(angle - Math.PI / 6),
                 endY - headLength * Math.sin(angle - Math.PI / 6)
             );
-            this.ctx.moveTo(endX, endY);
-            this.ctx.lineTo(
+            ctx.moveTo(endX, endY);
+            ctx.lineTo(
                 endX - headLength * Math.cos(angle + Math.PI / 6),
                 endY - headLength * Math.sin(angle + Math.PI / 6)
             );
-            this.ctx.stroke();
-            this.ctx.closePath();
+            ctx.stroke();
         }
+    }
+
+    // Keep old methods for backwards compatibility (delegate to new methods)
+    drawPath(points: {x: number, y: number}[]) {
+        this.drawPathOnContext(this.staticCtx, points);
+    }
+
+    drawLine(startX: number, startY: number, endX: number, endY: number, isArrow: boolean) {
+        this.drawLineOnContext(this.staticCtx, startX, startY, endX, endY, isArrow);
     }
 
     isPointNearShape(x: number, y: number, shape: Shape): boolean {
@@ -316,8 +426,19 @@ export class Game {
         return -1; // No shape found
     }
 
-    mouseUpHandler = (e: MouseEvent) => {
+    // Get coordinates from pointer event (handles both mouse and touch)
+    private getPointerCoords(e: PointerEvent): { x: number, y: number } {
+        const rect = this.activeCanvas.getBoundingClientRect();
+        return {
+            x: e.clientX - rect.left,
+            y: e.clientY - rect.top
+        };
+    }
+
+    pointerUpHandler = (e: PointerEvent) => {
+        const coords = this.getPointerCoords(e);
         this.clicked = false;
+        this.clearActiveLayer();  // Clear the preview
     
         if (this.selectedTool === "pencil" && this.currentPencilShape) {
             this.existingShape.push(this.currentPencilShape);
@@ -329,14 +450,15 @@ export class Game {
             });
             
             this.saveToUndoHistory();
-            this.currentPencilShape = null; 
+            this.currentPencilShape = null;
+            this.renderStaticLayer();  // Render the new shape to static layer
         } else if (this.selectedTool === "line" || this.selectedTool === "arrow") {
             const shape: Shape = {
                 type: "line",
                 startX: this.startX,
                 startY: this.startY,
-                endX: e.clientX,
-                endY: e.clientY,
+                endX: coords.x,
+                endY: coords.y,
                 isArrow: this.selectedTool === "arrow"  
             };
             
@@ -348,9 +470,10 @@ export class Game {
             });
             
             this.saveToUndoHistory();
+            this.renderStaticLayer();
         } else if (this.selectedTool === "rect" || this.selectedTool === "circle") {
-            const width = e.clientX - this.startX;
-            const height = e.clientY - this.startY;
+            const width = coords.x - this.startX;
+            const height = coords.y - this.startY;
             let shape: Shape | null = null;
     
             if (this.selectedTool === "rect") {
@@ -380,22 +503,27 @@ export class Game {
                 });
                 
                 this.saveToUndoHistory();
+                this.renderStaticLayer();
             }
         }
     };
 
-    mouseDownHandler = (e: MouseEvent) => {
+    pointerDownHandler = (e: PointerEvent) => {
+        // Capture pointer for better touch handling
+        this.activeCanvas.setPointerCapture(e.pointerId);
+        
+        const coords = this.getPointerCoords(e);
         this.clicked = true;
-        this.startX = e.clientX;
-        this.startY = e.clientY;
+        this.startX = coords.x;
+        this.startY = coords.y;
 
         if (this.selectedTool === "pencil") {
             this.currentPencilShape = { 
                 type: "pencil", 
-                points: [{ x: e.clientX, y: e.clientY }] 
+                points: [{ x: coords.x, y: coords.y }] 
             };
         } else if (this.selectedTool === "eraser") {
-            const indexToRemove = this.findShapeIndexAt(e.clientX, e.clientY);
+            const indexToRemove = this.findShapeIndexAt(coords.x, coords.y);
             
             if (indexToRemove !== -1) {
                 const indicesToRemove = [indexToRemove];
@@ -409,29 +537,62 @@ export class Game {
                 });
                 
                 this.saveToUndoHistory();
-                this.clearCanvas();
+                this.renderStaticLayer();
             }
         }
     }
 
-    mouseMoveHandler = (e: MouseEvent) => {
+    pointerMoveHandler = (e: PointerEvent) => {
         if (!this.clicked) return;
+        
+        const coords = this.getPointerCoords(e);
     
         if (this.selectedTool === "pencil" && this.currentPencilShape && this.currentPencilShape.type === "pencil") {
-            const newPoint = { x: e.clientX, y: e.clientY };
+            const points = this.currentPencilShape.points;
+            const lastPoint = points[points.length - 1];
+            
+            // Point sampling - only add point if moved enough distance (reduces data bloat)
+            const distance = Math.hypot(coords.x - lastPoint.x, coords.y - lastPoint.y);
+            if (distance < 2) return; // Skip if moved less than 2px
+            
+            const newPoint = { x: coords.x, y: coords.y };
             this.currentPencilShape.points.push(newPoint);
             
-            this.ctx.strokeStyle = "rgba(255, 255, 255)";
-            this.ctx.beginPath();
-            const points = this.currentPencilShape.points;
-            this.ctx.moveTo(points[points.length - 2].x, points[points.length - 2].y);
-            this.ctx.lineTo(newPoint.x, newPoint.y);
-            this.ctx.stroke();
-            this.ctx.closePath();
+            // Draw smooth incremental segment on active layer
+            const ctx = this.activeCtx;
+            const isDark = document.body.classList.contains('dark');
+            ctx.strokeStyle = isDark ? "#ffffff" : "#000000";
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.lineWidth = 2;
+            
+            // For smoother live drawing, use quadratic bezier if we have enough points
+            if (points.length >= 3) {
+                const p0 = points[points.length - 3];
+                const p1 = points[points.length - 2];
+                const p2 = newPoint;
+                
+                // Calculate midpoints for smooth connection
+                const mid1X = (p0.x + p1.x) / 2;
+                const mid1Y = (p0.y + p1.y) / 2;
+                const mid2X = (p1.x + p2.x) / 2;
+                const mid2Y = (p1.y + p2.y) / 2;
+                
+                ctx.beginPath();
+                ctx.moveTo(mid1X, mid1Y);
+                ctx.quadraticCurveTo(p1.x, p1.y, mid2X, mid2Y);
+                ctx.stroke();
+            } else {
+                // Not enough points yet, just draw a line
+                ctx.beginPath();
+                ctx.moveTo(lastPoint.x, lastPoint.y);
+                ctx.lineTo(newPoint.x, newPoint.y);
+                ctx.stroke();
+            }
             
         } else if (this.selectedTool === "eraser") {
             // Find a shape to erase at the current mouse position
-            const indexToRemove = this.findShapeIndexAt(e.clientX, e.clientY);
+            const indexToRemove = this.findShapeIndexAt(coords.x, coords.y);
             
             if (indexToRemove !== -1) {
                 const indicesToRemove = [indexToRemove];
@@ -447,45 +608,32 @@ export class Game {
                 });
                 
                 this.saveToUndoHistory();
-                this.clearCanvas();
+                this.renderStaticLayer();
             }
-            
-        } else if (this.selectedTool === "line" || this.selectedTool === "arrow") {
-            this.clearCanvas();
-            this.ctx.strokeStyle = "rgba(255, 255, 255)";
-            this.drawLine(this.startX, this.startY, e.clientX, e.clientY, this.selectedTool === "arrow");
             
         } else {
-            this.clearCanvas();
-            this.ctx.strokeStyle = "rgba(255, 255, 255)";
-    
-            if (this.selectedTool === "rect") {
-                const width = e.clientX - this.startX;
-                const height = e.clientY - this.startY;
-                this.ctx.strokeRect(this.startX, this.startY, width, height);
-            } 
-            
-            else if (this.selectedTool === "circle") {
-                const width = e.clientX - this.startX;
-                const height = e.clientY - this.startY;
-                const radius = Math.max(Math.abs(width), Math.abs(height)) / 2;
-                const centerX = this.startX + width/2;
-                const centerY = this.startY + height/2;
-                
-                this.ctx.beginPath();
-                this.ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-                this.ctx.stroke();
-                this.ctx.closePath();
-            }
+            // Use requestAnimationFrame for shape preview (rect, circle, line, arrow)
+            this.pendingMouseEvent = coords;
+            this.needsActiveRender = true;
+            this.scheduleRender();
         }
     };
 
-    initMouseHandlers() {
-        // arrow function - this keyword is lexically bound i.e. it will refer to the class instance
-        // normal function - this keyword is dynamically bound i.e. it will refer to the object that called the function which is canvas
+    pointerLeaveHandler = (e: PointerEvent) => {
+        // Clear preview if pointer leaves canvas without releasing
+        if (this.clicked && this.selectedTool !== "pencil" && this.selectedTool !== "eraser") {
+            this.clearActiveLayer();
+        }
+    };
+
+    initPointerHandlers() {
+        // Use pointer events for unified mouse + touch + pen support
+        this.activeCanvas.addEventListener("pointerdown", this.pointerDownHandler);
+        this.activeCanvas.addEventListener("pointerup", this.pointerUpHandler);
+        this.activeCanvas.addEventListener("pointermove", this.pointerMoveHandler);
+        this.activeCanvas.addEventListener("pointerleave", this.pointerLeaveHandler);
         
-        this.canvas.addEventListener("mousedown", this.mouseDownHandler)
-        this.canvas.addEventListener("mouseup", this.mouseUpHandler)
-        this.canvas.addEventListener("mousemove", this.mouseMoveHandler)
+        // Prevent default touch behaviors (scrolling, zooming)
+        this.activeCanvas.style.touchAction = "none";
     }
 }
